@@ -110,8 +110,15 @@ A ordem pode ser ajustada conforme prioridade do usuário.
 ## Ambiente de Execução
 
 - **OS**: WSL Ubuntu 24.04 (filesystem nativo)
-- **Path do projeto**: `~/projects/passando-da-sena`
+- **Path do projeto (WSL)**: `~/projects/passando-da-sena` ← **FONTE DE VERDADE**
+- **Path do projeto (Windows)**: `C:\Users\prime\Documents\GitHub\Pessoal\passando-da-sena` ← clone espelho, pode estar desatualizado
 - **Python**: 3.12.3, venv em `python/.venv`
 - **Ativar venv**: `source python/.venv/bin/activate`
 - **Node/npm**: rodar dentro de `web/`
 - **Nunca usar** `/mnt/c/...` — performance ruim, repo vive no WSL
+
+### Regras de Acesso a Arquivos (CRÍTICO)
+- **SEMPRE** ler e editar arquivos via WSL: `wsl -e bash -c "cat ~/projects/..."`
+- **NUNCA** usar as ferramentas Read/Edit/Write do Claude Code com paths Windows para arquivos deste projeto
+- **NUNCA** tomar o clone Windows como referência — ele pode estar desatualizado em relação ao WSL
+- Toda execução de script Python, Node ou git deve ocorrer dentro do WSL

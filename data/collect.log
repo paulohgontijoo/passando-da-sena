@@ -1,0 +1,87 @@
+2026-05-20 14:37:01 [INFO] === Inicio da coleta ===
+2026-05-20 14:37:01 [INFO] Arquivo local: 0 concursos.
+2026-05-20 14:37:01 [INFO] Ultimo concurso local: 0
+2026-05-20 14:37:01 [INFO] Consultando ultimo concurso disponivel na API...
+2026-05-20 14:37:01 [INFO] Ultimo concurso na API: 3009
+2026-05-20 14:37:01 [INFO] Buscando 3009 concursos (1 -> 3009)...
+2026-05-20 14:37:21 [INFO] Progresso: 50/3009 (1.7%) | 2.5 req/s | ETA 1169s
+2026-05-20 14:37:42 [INFO] Progresso: 100/3009 (3.3%) | 2.4 req/s | ETA 1189s
+2026-05-20 14:38:01 [INFO] Progresso: 150/3009 (5.0%) | 2.5 req/s | ETA 1153s
+2026-05-20 14:38:22 [INFO] Progresso: 200/3009 (6.6%) | 2.5 req/s | ETA 1140s
+2026-05-20 14:38:42 [INFO] Progresso: 250/3009 (8.3%) | 2.5 req/s | ETA 1121s
+2026-05-20 14:39:03 [INFO] Progresso: 300/3009 (10.0%) | 2.4 req/s | ETA 1107s
+2026-05-20 14:39:23 [INFO] Progresso: 350/3009 (11.6%) | 2.5 req/s | ETA 1081s
+2026-05-20 14:39:43 [INFO] Progresso: 400/3009 (13.3%) | 2.5 req/s | ETA 1059s
+2026-05-20 14:40:03 [INFO] Progresso: 450/3009 (15.0%) | 2.5 req/s | ETA 1038s
+2026-05-20 14:40:24 [INFO] Progresso: 500/3009 (16.6%) | 2.5 req/s | ETA 1021s
+2026-05-20 14:40:45 [INFO] Progresso: 550/3009 (18.3%) | 2.5 req/s | ETA 1003s
+2026-05-20 14:41:05 [INFO] Progresso: 600/3009 (19.9%) | 2.5 req/s | ETA 982s
+2026-05-20 14:41:26 [WARNING] Concurso 626: HTTPSConnectionPool(host='servicebus2.caixa.gov.br', port=443): Read timed out. (read timeout=10)
+2026-05-20 14:41:26 [WARNING] Concurso 626: sem dados, pulando.
+2026-05-20 14:41:36 [INFO] Progresso: 650/3009 (21.6%) | 2.4 req/s | ETA 1000s
+2026-05-20 14:41:50 [WARNING] Concurso 660: HTTPSConnectionPool(host='servicebus2.caixa.gov.br', port=443): Read timed out. (read timeout=10)
+2026-05-20 14:41:50 [WARNING] Concurso 660: sem dados, pulando.
+2026-05-20 14:42:07 [INFO] Progresso: 700/3009 (23.3%) | 2.3 req/s | ETA 1008s
+2026-05-20 14:42:27 [INFO] Progresso: 750/3009 (24.9%) | 2.3 req/s | ETA 982s
+2026-05-20 14:42:56 [WARNING] Concurso 799: HTTPSConnectionPool(host='servicebus2.caixa.gov.br', port=443): Read timed out. (read timeout=10)
+2026-05-20 14:42:56 [WARNING] Concurso 799: sem dados, pulando.
+2026-05-20 14:42:57 [INFO] Progresso: 800/3009 (26.6%) | 2.2 req/s | ETA 983s
+2026-05-20 14:43:17 [WARNING] Concurso 824: HTTPSConnectionPool(host='servicebus2.caixa.gov.br', port=443): Read timed out. (read timeout=10)
+2026-05-20 14:43:17 [WARNING] Concurso 824: sem dados, pulando.
+2026-05-20 14:43:27 [INFO] Progresso: 850/3009 (28.2%) | 2.2 req/s | ETA 981s
+2026-05-20 14:43:47 [INFO] Progresso: 900/3009 (29.9%) | 2.2 req/s | ETA 952s
+2026-05-20 14:44:07 [INFO] Progresso: 950/3009 (31.6%) | 2.2 req/s | ETA 924s
+2026-05-20 14:44:27 [INFO] Progresso: 1000/3009 (33.2%) | 2.2 req/s | ETA 896s
+2026-05-20 14:44:47 [INFO] Progresso: 1050/3009 (34.9%) | 2.3 req/s | ETA 870s
+2026-05-20 14:45:07 [INFO] Progresso: 1100/3009 (36.6%) | 2.3 req/s | ETA 845s
+2026-05-20 14:45:28 [INFO] Progresso: 1150/3009 (38.2%) | 2.3 req/s | ETA 820s
+2026-05-20 14:45:48 [INFO] Progresso: 1200/3009 (39.9%) | 2.3 req/s | ETA 795s
+2026-05-20 14:46:08 [INFO] Progresso: 1250/3009 (41.5%) | 2.3 req/s | ETA 771s
+2026-05-20 14:46:29 [INFO] Progresso: 1300/3009 (43.2%) | 2.3 req/s | ETA 747s
+2026-05-20 14:46:49 [INFO] Progresso: 1350/3009 (44.9%) | 2.3 req/s | ETA 723s
+2026-05-20 14:47:09 [INFO] Progresso: 1400/3009 (46.5%) | 2.3 req/s | ETA 700s
+2026-05-20 14:47:30 [INFO] Progresso: 1450/3009 (48.2%) | 2.3 req/s | ETA 676s
+2026-05-20 14:47:50 [INFO] Progresso: 1500/3009 (49.9%) | 2.3 req/s | ETA 653s
+2026-05-20 14:48:10 [INFO] Progresso: 1550/3009 (51.5%) | 2.3 req/s | ETA 630s
+2026-05-20 14:48:30 [INFO] Progresso: 1600/3009 (53.2%) | 2.3 req/s | ETA 607s
+2026-05-20 14:48:51 [INFO] Progresso: 1650/3009 (54.8%) | 2.3 req/s | ETA 585s
+2026-05-20 14:49:11 [INFO] Progresso: 1700/3009 (56.5%) | 2.3 req/s | ETA 562s
+2026-05-20 14:49:31 [INFO] Progresso: 1750/3009 (58.2%) | 2.3 req/s | ETA 540s
+2026-05-20 14:49:51 [INFO] Progresso: 1800/3009 (59.8%) | 2.3 req/s | ETA 517s
+2026-05-20 14:50:12 [INFO] Progresso: 1850/3009 (61.5%) | 2.3 req/s | ETA 496s
+2026-05-20 14:50:32 [INFO] Progresso: 1900/3009 (63.1%) | 2.3 req/s | ETA 474s
+2026-05-20 14:50:53 [INFO] Progresso: 1950/3009 (64.8%) | 2.3 req/s | ETA 452s
+2026-05-20 14:51:13 [INFO] Progresso: 2000/3009 (66.5%) | 2.3 req/s | ETA 430s
+2026-05-20 14:51:33 [INFO] Progresso: 2050/3009 (68.1%) | 2.4 req/s | ETA 408s
+2026-05-20 14:51:53 [INFO] Progresso: 2100/3009 (69.8%) | 2.4 req/s | ETA 386s
+2026-05-20 14:52:13 [INFO] Progresso: 2150/3009 (71.5%) | 2.4 req/s | ETA 365s
+2026-05-20 14:52:33 [INFO] Progresso: 2200/3009 (73.1%) | 2.4 req/s | ETA 343s
+2026-05-20 14:52:54 [INFO] Progresso: 2250/3009 (74.8%) | 2.4 req/s | ETA 321s
+2026-05-20 14:53:14 [INFO] Progresso: 2300/3009 (76.4%) | 2.4 req/s | ETA 300s
+2026-05-20 14:53:34 [INFO] Progresso: 2350/3009 (78.1%) | 2.4 req/s | ETA 279s
+2026-05-20 14:53:55 [INFO] Progresso: 2400/3009 (79.8%) | 2.4 req/s | ETA 257s
+2026-05-20 14:54:15 [INFO] Progresso: 2450/3009 (81.4%) | 2.4 req/s | ETA 236s
+2026-05-20 14:54:40 [WARNING] Concurso 2486: HTTPSConnectionPool(host='servicebus2.caixa.gov.br', port=443): Read timed out. (read timeout=10)
+2026-05-20 14:54:40 [WARNING] Concurso 2486: sem dados, pulando.
+2026-05-20 14:54:45 [INFO] Progresso: 2500/3009 (83.1%) | 2.3 req/s | ETA 217s
+2026-05-20 14:55:05 [INFO] Progresso: 2550/3009 (84.7%) | 2.4 req/s | ETA 195s
+2026-05-20 14:55:30 [WARNING] Concurso 2585: HTTPSConnectionPool(host='servicebus2.caixa.gov.br', port=443): Read timed out. (read timeout=10)
+2026-05-20 14:55:30 [WARNING] Concurso 2585: sem dados, pulando.
+2026-05-20 14:55:36 [INFO] Progresso: 2600/3009 (86.4%) | 2.3 req/s | ETA 175s
+2026-05-20 14:55:56 [INFO] Progresso: 2650/3009 (88.1%) | 2.3 req/s | ETA 154s
+2026-05-20 14:56:17 [INFO] Progresso: 2700/3009 (89.7%) | 2.3 req/s | ETA 132s
+2026-05-20 14:56:41 [WARNING] Concurso 2735: HTTPSConnectionPool(host='servicebus2.caixa.gov.br', port=443): Read timed out. (read timeout=10)
+2026-05-20 14:56:41 [WARNING] Concurso 2735: sem dados, pulando.
+2026-05-20 14:56:47 [INFO] Progresso: 2750/3009 (91.4%) | 2.3 req/s | ETA 112s
+2026-05-20 14:57:07 [INFO] Progresso: 2800/3009 (93.1%) | 2.3 req/s | ETA 90s
+2026-05-20 14:57:27 [INFO] Progresso: 2850/3009 (94.7%) | 2.3 req/s | ETA 68s
+2026-05-20 14:57:48 [INFO] Progresso: 2900/3009 (96.4%) | 2.3 req/s | ETA 47s
+2026-05-20 14:58:07 [INFO] Progresso: 2950/3009 (98.0%) | 2.3 req/s | ETA 25s
+2026-05-20 14:58:27 [INFO] Progresso: 3000/3009 (99.7%) | 2.3 req/s | ETA 4s
+2026-05-20 14:58:31 [INFO] Progresso: 3009/3009 (100.0%) | 2.3 req/s | ETA 0s
+2026-05-20 14:58:31 [INFO] Salvo: /home/prime/projects/passando-da-sena/data/sorteios.json (3002 concursos)
+2026-05-20 14:58:31 [INFO] Concluido: 3002 novos adicionados, 7 erros.
+2026-05-20 14:58:31 [WARNING] Concursos com erro: [626, 660, 799, 824, 2486, 2585, 2735]
+2026-05-20 14:58:31 [INFO] === Fim da coleta ===
+, 799, 824, 2486, 2585, 2735]
+2026-05-20 14:58:31 [INFO] === Fim da coleta ===
