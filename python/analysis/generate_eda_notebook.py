@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 generate_eda_notebook.py
-Gera 01_eda.ipynb usando nbformat.
+Gera 01_eda.ipynb com plots interativos via Plotly.
 Execucao: python analysis/generate_eda_notebook.py  (com venv ativo)
 """
 
@@ -20,14 +20,15 @@ def code(src: str) -> nbf.NotebookNode:
 
 
 # ---------------------------------------------------------------------------
-# Fontes das celulas
+# Celulas
 # ---------------------------------------------------------------------------
 
 CELL_TITLE = """\
 # EDA — Mega Sena Analytics
 **Analise Exploratoria Inicial** dos sorteios historicos da Mega Sena (1996–2026).
 
-Dados: `data/sorteios.json` — 3.002 concursos coletados via API da Caixa.\
+Dados: `data/sorteios.json` — 3.002 concursos coletados via API da Caixa.
+Plots: **Plotly** (interativos — hover, zoom, pan, export PNG pelo menu da figura).\
 """
 
 CELL_IMPORTS = """\
@@ -37,46 +38,44 @@ from collections import Counter
 from itertools import combinations
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
+import plotly.graph_objects as go
+import plotly.express as px
+from plotly.subplots import make_subplots
 
 warnings.filterwarnings("ignore")
-%matplotlib inline
 
 # -- Paths
-ROOT      = Path().resolve().parents[1]   # raiz do repo
+ROOT      = Path().resolve().parents[1]
 DATA_PATH = ROOT / "data" / "sorteios.json"
 EXPORTS   = ROOT / "python" / "exports"
 EXPORTS.mkdir(exist_ok=True)
 
-# -- Paleta global (reutilizar em todas as analises)
+# -- Paleta global
 PRIMARY   = "#1a1a2e"
 ACCENT    = "#e94560"
 HIGHLIGHT = "#f5a623"
 MUTED     = "#8892b0"
 BG        = "#f8f9fa"
 
-sns.set_theme(style="whitegrid", font_scale=1.1)
-plt.rcParams.update({
-    "figure.facecolor": BG,
-    "axes.facecolor":   BG,
-    "axes.edgecolor":   PRIMARY,
-    "axes.labelcolor":  PRIMARY,
-    "xtick.color":      PRIMARY,
-    "ytick.color":      PRIMARY,
-    "text.color":       PRIMARY,
-    "grid.color":       "#e0e0e0",
-    "font.family":      "DejaVu Sans",
-})
+# -- Template Plotly customizado
+LAYOUT = dict(
+    paper_bgcolor=BG,
+    plot_bgcolor=BG,
+    font=dict(family="DejaVu Sans, sans-serif", color=PRIMARY),
+    title_font=dict(size=16, color=PRIMARY),
+    legend=dict(bgcolor="rgba(0,0,0,0)", borderwidth=0),
+    hoverlabel=dict(bgcolor="white", font_size=12),
+    margin=dict(t=70, b=50, l=60, r=30),
+)
 
 DEZENA_COLS = ["d1", "d2", "d3", "d4", "d5", "d6"]
+
 print("Imports OK")\
 """
 
 CELL_LOAD = """\
-# -- Load & Flatten
 raw  = json.load(open(DATA_PATH))
 rows = []
 
@@ -85,25 +84,20 @@ for c in raw:
     dezenas = sorted([int(x) for x in c["listaDezenas"]])
     sorteio = [int(x) for x in c["dezenasSorteadasOrdemSorteio"]]
     rows.append({
-        # identificacao
         "numero":       c["numero"],
         "data":         pd.to_datetime(c["dataApuracao"], dayfirst=True),
         "acumulado":    bool(c["acumulado"]),
         "especial":     c["indicadorConcursoEspecial"] != 1,
         "local":        c.get("localSorteio", ""),
         "cidade":       c.get("nomeMunicipioUFSorteio", ""),
-        # dezenas em ordem crescente
         "d1": dezenas[0], "d2": dezenas[1], "d3": dezenas[2],
         "d4": dezenas[3], "d5": dezenas[4], "d6": dezenas[5],
-        # dezenas em ordem de sorteio
         "s1": sorteio[0], "s2": sorteio[1], "s3": sorteio[2],
         "s4": sorteio[3], "s5": sorteio[4], "s6": sorteio[5],
-        # financeiro
         "valor_arrecadado":        c.get("valorArrecadado", 0.0),
         "valor_acumulado_proximo": c.get("valorAcumuladoProximoConcurso", 0.0),
         "valor_estimado_proximo":  c.get("valorEstimadoProximoConcurso", 0.0),
         "premio_total_sena":       c.get("valorTotalPremioFaixaUm", 0.0),
-        # rateio por faixa
         "ganhadores_6": rateo.get(1, {}).get("numeroDeGanhadores", 0),
         "premio_6":     rateo.get(1, {}).get("valorPremio", 0.0),
         "ganhadores_5": rateo.get(2, {}).get("numeroDeGanhadores", 0),
@@ -114,7 +108,6 @@ for c in raw:
 
 df = pd.DataFrame(rows).sort_values("numero").reset_index(drop=True)
 
-# helper: todas as dezenas como array flat
 def all_dezenas(d=df):
     return d[DEZENA_COLS].values.flatten()
 
@@ -122,45 +115,65 @@ print(f"{len(df)} concursos | {df['data'].min().date()} -> {df['data'].max().dat
 df.head(3)\
 """
 
-CELL_INFO = """\
-df.info()\
-"""
+CELL_INFO = "df.info()"
 
 CELL_MD_1 = """\
 ## 1. Frequencia historica de cada dezena
 
-Quantas vezes cada dezena (1–60) foi sorteada em toda a historia.\
+Quantas vezes cada dezena (1–60) foi sorteada. Barras em destaque = acima da media.\
 """
 
 CELL_FREQ = """\
 freq   = Counter(all_dezenas())
-nums   = np.arange(1, 61)
+nums   = list(range(1, 61))
 counts = [freq[n] for n in nums]
 media  = np.mean(counts)
 
 top5 = sorted(range(1, 61), key=lambda n: freq[n], reverse=True)[:5]
 bot5 = sorted(range(1, 61), key=lambda n: freq[n])[:5]
 
-fig, ax = plt.subplots(figsize=(16, 5))
-colors = [ACCENT if c >= media else MUTED for c in counts]
-ax.bar(nums, counts, color=colors, width=0.8)
-ax.axhline(media, color=HIGHLIGHT, lw=1.8, ls="--", label=f"Media ({media:.0f}x)")
+def classify(n, c):
+    if n in top5:   return "Top 5"
+    if n in bot5:   return "Bottom 5"
+    if c >= media:  return "Acima da media"
+    return "Abaixo da media"
 
-for n in top5 + bot5:
-    ax.text(n, freq[n] + 4, str(n), ha="center", va="bottom",
-            fontsize=7, color=PRIMARY, fontweight="bold")
+color_map = {"Top 5": ACCENT, "Bottom 5": HIGHLIGHT,
+             "Acima da media": ACCENT, "Abaixo da media": MUTED}
+opacity_map = {"Top 5": 1.0, "Bottom 5": 1.0,
+               "Acima da media": 0.7, "Abaixo da media": 0.5}
 
-ax.set_xlabel("Dezena")
-ax.set_ylabel("Num. de sorteios")
-ax.set_title("Frequencia historica de cada dezena (1996-2026)",
-             pad=14, fontsize=14, fontweight="bold")
-ax.set_xticks(nums)
-ax.tick_params(axis="x", labelsize=7)
-ax.legend(framealpha=0)
-sns.despine(ax=ax)
-fig.tight_layout()
-fig.savefig(EXPORTS / "eda_01_frequencia_dezenas.png", dpi=150, bbox_inches="tight")
-plt.show()
+categories = [classify(n, c) for n, c in zip(nums, counts)]
+
+fig = go.Figure()
+
+for cat in ["Acima da media", "Abaixo da media", "Top 5", "Bottom 5"]:
+    xs = [n for n, c in zip(nums, categories) if c == cat]
+    ys = [counts[n - 1] for n in xs]
+    fig.add_trace(go.Bar(
+        x=xs, y=ys,
+        name=cat,
+        marker_color=color_map[cat],
+        opacity=opacity_map[cat],
+        hovertemplate="Dezena <b>%{x}</b><br>Sorteios: <b>%{y}</b><extra></extra>",
+    ))
+
+fig.add_hline(y=media, line_dash="dash", line_color=PRIMARY, line_width=1.5,
+              annotation_text=f"Media: {media:.0f}x",
+              annotation_position="top right")
+
+fig.update_layout(
+    **LAYOUT,
+    title="Frequencia historica de cada dezena (1996-2026)",
+    xaxis=dict(title="Dezena", tickmode="linear", tick0=1, dtick=1,
+               tickfont=dict(size=9), gridcolor="#e0e0e0"),
+    yaxis=dict(title="Num. de sorteios", gridcolor="#e0e0e0"),
+    barmode="overlay",
+    bargap=0.1,
+    height=420,
+)
+fig.write_html(EXPORTS / "eda_01_frequencia_dezenas.html")
+fig.show()
 
 print(f"Mais frequentes : {sorted(top5)}")
 print(f"Menos frequentes: {sorted(bot5)}")\
@@ -169,7 +182,7 @@ print(f"Menos frequentes: {sorted(bot5)}")\
 CELL_MD_2 = """\
 ## 2. Frequencia por faixa de dezena
 
-Distribuicao dos sorteios agrupados por faixa (01–10, 11–20, ...).\
+Sorteios agrupados por faixa de 10 numeros. Linha tracejada = distribuicao esperada uniforme.\
 """
 
 CELL_FAIXA = """\
@@ -178,79 +191,105 @@ labels    = ["01-10", "11-20", "21-30", "31-40", "41-50", "51-60"]
 bins      = [0, 10, 20, 30, 40, 50, 60]
 counts, _ = np.histogram(dezenas, bins=bins)
 esperado  = dezenas.size / 6
+pcts      = [100 * c / dezenas.size for c in counts]
 
-fig, ax = plt.subplots(figsize=(9, 5))
-colors = [ACCENT if c > esperado else MUTED for c in counts]
-bars   = ax.bar(labels, counts, color=colors, width=0.6)
-ax.axhline(esperado, color=HIGHLIGHT, lw=1.8, ls="--", label=f"Esperado ({esperado:.0f})")
-for bar, count in zip(bars, counts):
-    pct = 100 * count / dezenas.size
-    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 80,
-            f"{count:,}\\n({pct:.1f}%)", ha="center", fontsize=9.5, color=PRIMARY)
-ax.set_xlabel("Faixa")
-ax.set_ylabel("Num. de sorteios")
-ax.set_title("Sorteios por faixa de dezena", pad=14, fontsize=14, fontweight="bold")
-ax.legend(framealpha=0)
-sns.despine(ax=ax)
-fig.tight_layout()
-fig.savefig(EXPORTS / "eda_02_frequencia_faixa.png", dpi=150, bbox_inches="tight")
-plt.show()\
+fig = go.Figure(go.Bar(
+    x=labels,
+    y=counts,
+    marker_color=[ACCENT if c > esperado else MUTED for c in counts],
+    text=[f"{c:,}<br>({p:.1f}%)" for c, p in zip(counts, pcts)],
+    textposition="outside",
+    hovertemplate="Faixa <b>%{x}</b><br>Sorteios: <b>%{y:,}</b><br>%{text}<extra></extra>",
+))
+
+fig.add_hline(y=esperado, line_dash="dash", line_color=HIGHLIGHT, line_width=2,
+              annotation_text=f"Esperado: {esperado:.0f}",
+              annotation_position="top right")
+
+fig.update_layout(
+    **LAYOUT,
+    title="Sorteios por faixa de dezena",
+    xaxis=dict(title="Faixa", gridcolor="#e0e0e0"),
+    yaxis=dict(title="Num. de sorteios", gridcolor="#e0e0e0"),
+    height=420,
+    showlegend=False,
+)
+fig.write_html(EXPORTS / "eda_02_frequencia_faixa.html")
+fig.show()\
 """
 
 CELL_MD_3 = """\
 ## 3. Distribuicao de pares e impares por sorteio
 
-Quantos numeros pares e impares saem em cada sorteio.\
+Composicao de numeros pares e impares em cada sorteio. A combinacao 3P/3I e a mais comum?\
 """
 
 CELL_PARES = """\
 n_pares  = df[DEZENA_COLS].apply(lambda row: (row % 2 == 0).sum(), axis=1)
 contagem = n_pares.value_counts().sort_index()
+labels   = [f"{p}P / {6-p}I" for p in contagem.index]
+pcts     = [100 * v / len(df) for v in contagem.values]
 
-fig, ax = plt.subplots(figsize=(9, 5))
-labels = [f"{p}P / {6 - p}I" for p in contagem.index]
-colors = [ACCENT if p == 3 else MUTED for p in contagem.index]
-bars   = ax.bar(labels, contagem.values, color=colors, width=0.6)
-for bar, val in zip(bars, contagem.values):
-    pct = 100 * val / len(df)
-    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 8,
-            f"{pct:.1f}%", ha="center", fontsize=10, color=PRIMARY)
-ax.set_xlabel("Composicao par / impar")
-ax.set_ylabel("Num. de sorteios")
-ax.set_title("Distribuicao de pares e impares por sorteio",
-             pad=14, fontsize=14, fontweight="bold")
-sns.despine(ax=ax)
-fig.tight_layout()
-fig.savefig(EXPORTS / "eda_03_pares_impares.png", dpi=150, bbox_inches="tight")
-plt.show()
+fig = go.Figure(go.Bar(
+    x=labels,
+    y=contagem.values,
+    marker_color=[ACCENT if p == 3 else MUTED for p in contagem.index],
+    text=[f"{p:.1f}%" for p in pcts],
+    textposition="outside",
+    hovertemplate="<b>%{x}</b><br>Sorteios: <b>%{y:,}</b><br>%{text}<extra></extra>",
+))
 
-print(n_pares.describe())\
+fig.update_layout(
+    **LAYOUT,
+    title="Distribuicao de pares e impares por sorteio",
+    xaxis=dict(title="Composicao par / impar", gridcolor="#e0e0e0"),
+    yaxis=dict(title="Num. de sorteios", gridcolor="#e0e0e0"),
+    height=420,
+    showlegend=False,
+)
+fig.write_html(EXPORTS / "eda_03_pares_impares.html")
+fig.show()
+
+n_pares.describe()\
 """
 
 CELL_MD_4 = """\
 ## 4. Distribuicao da soma dos 6 numeros
 
-A soma dos 6 numeros sorteados deve se aproximar de uma distribuicao normal pelo TCL.\
+Pelo Teorema Central do Limite, a soma de 6 variaveis discretas uniformes deve se aproximar de uma normal.\
 """
 
 CELL_SOMA = """\
 soma = df[DEZENA_COLS].sum(axis=1)
 
-fig, ax = plt.subplots(figsize=(12, 5))
-ax.hist(soma, bins=55, color=ACCENT, edgecolor=BG, linewidth=0.4, alpha=0.85)
-ax.axvline(soma.mean(),   color=HIGHLIGHT, lw=2.0, ls="--",
-           label=f"Media ({soma.mean():.0f})")
-ax.axvline(soma.median(), color=PRIMARY,   lw=1.5, ls=":",
-           label=f"Mediana ({soma.median():.0f})")
-ax.set_xlabel("Soma dos 6 numeros sorteados")
-ax.set_ylabel("Num. de sorteios")
-ax.set_title("Distribuicao da soma dos 6 numeros por sorteio",
-             pad=14, fontsize=14, fontweight="bold")
-ax.legend(framealpha=0)
-sns.despine(ax=ax)
-fig.tight_layout()
-fig.savefig(EXPORTS / "eda_04_soma_dezenas.png", dpi=150, bbox_inches="tight")
-plt.show()
+fig = go.Figure()
+
+fig.add_trace(go.Histogram(
+    x=soma,
+    nbinsx=55,
+    marker_color=ACCENT,
+    opacity=0.85,
+    name="Sorteios",
+    hovertemplate="Soma: <b>%{x}</b><br>Freq: <b>%{y}</b><extra></extra>",
+))
+
+for val, label, color, dash in [
+    (soma.mean(),   f"Media ({soma.mean():.0f})",   HIGHLIGHT, "dash"),
+    (soma.median(), f"Mediana ({soma.median():.0f})", PRIMARY,  "dot"),
+]:
+    fig.add_vline(x=val, line_dash=dash, line_color=color, line_width=2,
+                  annotation_text=label, annotation_position="top")
+
+fig.update_layout(
+    **LAYOUT,
+    title="Distribuicao da soma dos 6 numeros por sorteio",
+    xaxis=dict(title="Soma dos 6 numeros", gridcolor="#e0e0e0"),
+    yaxis=dict(title="Num. de sorteios", gridcolor="#e0e0e0"),
+    height=420,
+    showlegend=False,
+)
+fig.write_html(EXPORTS / "eda_04_soma_dezenas.html")
+fig.show()
 
 soma.describe()\
 """
@@ -258,7 +297,7 @@ soma.describe()\
 CELL_MD_5 = """\
 ## 5. Gap entre aparicoes de cada dezena
 
-Intervalo (em numero de concursos) entre duas aparicoes consecutivas da mesma dezena.\
+Quantos concursos uma dezena fica sem ser sorteada entre duas aparicoes consecutivas.\
 """
 
 CELL_GAP = """\
@@ -272,37 +311,44 @@ for num in range(1, 61):
 all_gaps   = np.concatenate(list(gaps_por_dezena.values()))
 media_gaps = {n: g.mean() for n, g in gaps_por_dezena.items()}
 
-fig, axes = plt.subplots(1, 2, figsize=(15, 5))
+fig = make_subplots(rows=1, cols=2,
+                    subplot_titles=["Distribuicao do gap global",
+                                    "Gap medio por dezena"])
 
-# Histograma geral
-axes[0].hist(all_gaps, bins=60, color=ACCENT, edgecolor=BG, lw=0.3, alpha=0.85)
-axes[0].axvline(all_gaps.mean(), color=HIGHLIGHT, lw=2, ls="--",
-                label=f"Media ({all_gaps.mean():.1f} concursos)")
-axes[0].set_xlabel("Concursos entre aparicoes da mesma dezena")
-axes[0].set_ylabel("Frequencia")
-axes[0].set_title("Distribuicao do gap entre aparicoes",
-                  pad=12, fontsize=13, fontweight="bold")
-axes[0].legend(framealpha=0)
-sns.despine(ax=axes[0])
+# Histograma global
+fig.add_trace(go.Histogram(
+    x=all_gaps, nbinsx=60,
+    marker_color=ACCENT, opacity=0.85, name="Gap",
+    hovertemplate="Gap: <b>%{x}</b> concursos<br>Freq: <b>%{y}</b><extra></extra>",
+), row=1, col=1)
+fig.add_vline(x=all_gaps.mean(), line_dash="dash", line_color=HIGHLIGHT,
+              line_width=2, row=1, col=1,
+              annotation_text=f"Media: {all_gaps.mean():.1f}")
 
 # Gap medio por dezena
-nums   = list(media_gaps.keys())
-meias  = list(media_gaps.values())
-m_ger  = np.mean(meias)
-colors = [ACCENT if v > m_ger else MUTED for v in meias]
-axes[1].bar(nums, meias, color=colors, width=0.8)
-axes[1].axhline(m_ger, color=HIGHLIGHT, lw=1.5, ls="--", label=f"Media ({m_ger:.1f})")
-axes[1].set_xlabel("Dezena")
-axes[1].set_ylabel("Gap medio (concursos)")
-axes[1].set_title("Gap medio por dezena", pad=12, fontsize=13, fontweight="bold")
-axes[1].set_xticks(nums)
-axes[1].tick_params(axis="x", labelsize=7)
-axes[1].legend(framealpha=0)
-sns.despine(ax=axes[1])
+nums_g  = list(media_gaps.keys())
+meias_g = list(media_gaps.values())
+m_ger   = np.mean(meias_g)
+fig.add_trace(go.Bar(
+    x=nums_g, y=meias_g,
+    marker_color=[ACCENT if v > m_ger else MUTED for v in meias_g],
+    name="Gap medio",
+    hovertemplate="Dezena <b>%{x}</b><br>Gap medio: <b>%{y:.1f}</b> concursos<extra></extra>",
+), row=1, col=2)
+fig.add_hline(y=m_ger, line_dash="dash", line_color=HIGHLIGHT,
+              line_width=2, row=1, col=2,
+              annotation_text=f"Media: {m_ger:.1f}")
 
-fig.tight_layout()
-fig.savefig(EXPORTS / "eda_05_gap_dezenas.png", dpi=150, bbox_inches="tight")
-plt.show()
+fig.update_layout(
+    **LAYOUT,
+    title="Gap entre aparicoes de cada dezena",
+    height=430,
+    showlegend=False,
+)
+fig.update_xaxes(gridcolor="#e0e0e0")
+fig.update_yaxes(gridcolor="#e0e0e0")
+fig.write_html(EXPORTS / "eda_05_gap_dezenas.html")
+fig.show()
 
 print(f"Gap global: media={all_gaps.mean():.1f} | mediana={np.median(all_gaps):.1f} | max={all_gaps.max()}")\
 """
@@ -311,16 +357,17 @@ CELL_MD_6 = """\
 ## 6. Evolucao temporal da frequencia
 
 Frequencia de cada dezena em uma janela deslizante de 200 concursos.
-Destaque para as 3 mais e 3 menos frequentes na historia completa.\
+Destaque para as **3 mais** (vermelho) e **3 menos** (amarelo) frequentes no historico total.
+As demais dezenas ficam em cinza — clique na legenda para isolar traces.\
 """
 
 CELL_TEMPORAL = """\
 WINDOW = 200
 STEP   = 50
 
-freq = Counter(all_dezenas())
-top3 = [n for n, _ in freq.most_common(3)]
-bot3 = [n for n, _ in sorted(freq.items(), key=lambda x: x[1])[:3]]
+freq_total = Counter(all_dezenas())
+top3 = [n for n, _ in freq_total.most_common(3)]
+bot3 = [n for n, _ in sorted(freq_total.items(), key=lambda x: x[1])[:3]]
 
 janelas = []
 for start in range(0, len(df) - WINDOW + 1, STEP):
@@ -332,28 +379,52 @@ for start in range(0, len(df) - WINDOW + 1, STEP):
 
 df_ev = pd.DataFrame(janelas)
 
-fig, ax = plt.subplots(figsize=(14, 6))
-for dezena in range(1, 61):
-    sub = df_ev[df_ev["dezena"] == dezena].sort_values("concurso")
-    if dezena in top3:
-        ax.plot(sub["concurso"], sub["freq"], color=ACCENT, lw=2, alpha=0.9,
-                label=f"Dezena {dezena} (top)")
-    elif dezena in bot3:
-        ax.plot(sub["concurso"], sub["freq"], color=HIGHLIGHT, lw=2,
-                ls="--", alpha=0.9, label=f"Dezena {dezena} (bottom)")
-    else:
-        ax.plot(sub["concurso"], sub["freq"], color=MUTED, lw=0.4, alpha=0.2)
+fig = go.Figure()
 
-ax.set_xlabel("Num. do concurso")
-ax.set_ylabel(f"Freq. em janela de {WINDOW} sorteios")
-ax.set_title(f"Evolucao temporal da frequencia (janela={WINDOW}, passo={STEP})",
-             pad=14, fontsize=14, fontweight="bold")
-handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles, labels, framealpha=0, fontsize=9)
-sns.despine(ax=ax)
-fig.tight_layout()
-fig.savefig(EXPORTS / "eda_06_evolucao_temporal.png", dpi=150, bbox_inches="tight")
-plt.show()
+# Fundo: todas as dezenas em cinza
+for dezena in range(1, 61):
+    if dezena in top3 or dezena in bot3:
+        continue
+    sub = df_ev[df_ev["dezena"] == dezena].sort_values("concurso")
+    fig.add_trace(go.Scatter(
+        x=sub["concurso"], y=sub["freq"],
+        mode="lines",
+        line=dict(color=MUTED, width=0.5),
+        opacity=0.25,
+        showlegend=False,
+        hoverinfo="skip",
+    ))
+
+# Destaque: top3 e bot3
+for dezena in top3:
+    sub = df_ev[df_ev["dezena"] == dezena].sort_values("concurso")
+    fig.add_trace(go.Scatter(
+        x=sub["concurso"], y=sub["freq"],
+        mode="lines",
+        name=f"Dezena {dezena} (top)",
+        line=dict(color=ACCENT, width=2.5),
+        hovertemplate=f"Dezena {dezena}<br>Concurso: %{{x}}<br>Freq: %{{y}}<extra></extra>",
+    ))
+
+for dezena in bot3:
+    sub = df_ev[df_ev["dezena"] == dezena].sort_values("concurso")
+    fig.add_trace(go.Scatter(
+        x=sub["concurso"], y=sub["freq"],
+        mode="lines",
+        name=f"Dezena {dezena} (bottom)",
+        line=dict(color=HIGHLIGHT, width=2.5, dash="dash"),
+        hovertemplate=f"Dezena {dezena}<br>Concurso: %{{x}}<br>Freq: %{{y}}<extra></extra>",
+    ))
+
+fig.update_layout(
+    **LAYOUT,
+    title=f"Evolucao temporal da frequencia (janela={WINDOW} concursos, passo={STEP})",
+    xaxis=dict(title="Num. do concurso", gridcolor="#e0e0e0"),
+    yaxis=dict(title=f"Freq. em janela de {WINDOW} sorteios", gridcolor="#e0e0e0"),
+    height=480,
+)
+fig.write_html(EXPORTS / "eda_06_evolucao_temporal.html")
+fig.show()
 
 print(f"Top 3: {top3} | Bottom 3: {bot3}")\
 """
@@ -361,8 +432,8 @@ print(f"Top 3: {top3} | Bottom 3: {bot3}")\
 CELL_MD_7 = """\
 ## 7. Co-ocorrencia de pares de dezenas
 
-Os 30 pares que mais saem juntos, comparados ao valor esperado por distribuicao uniforme.
-Esperado: `C(6,2) / C(60,2) * total_sorteios = ~25x`.\
+Top 30 pares que mais saem juntos. A linha tracejada marca o valor esperado por distribuicao uniforme:
+`C(6,2) / C(60,2) * total_sorteios ≈ 25x`.\
 """
 
 CELL_PARES_CO = """\
@@ -372,24 +443,37 @@ for row in df[DEZENA_COLS].itertuples(index=False):
 
 freq_pares = Counter(pares)
 top30      = freq_pares.most_common(30)
-esperado   = len(df) * 15 / 1770  # C(6,2) / C(60,2)
+esperado   = len(df) * 15 / 1770
 
 labels = [f"{a}-{b}" for (a, b), _ in top30]
 values = [v for _, v in top30]
+desvio = [f"{(v - esperado) / esperado * 100:+.1f}%" for v in values]
 
-fig, ax = plt.subplots(figsize=(13, 8))
-colors = [ACCENT if v > esperado else MUTED for v in values]
-ax.barh(labels[::-1], values[::-1], color=colors[::-1], height=0.7)
-ax.axvline(esperado, color=HIGHLIGHT, lw=1.8, ls="--",
-           label=f"Esperado ({esperado:.0f}x)")
-ax.set_xlabel("Num. de co-ocorrencias")
-ax.set_title("Top 30 pares de dezenas mais frequentes",
-             pad=14, fontsize=14, fontweight="bold")
-ax.legend(framealpha=0)
-sns.despine(ax=ax)
-fig.tight_layout()
-fig.savefig(EXPORTS / "eda_07_pares_coocorrencia.png", dpi=150, bbox_inches="tight")
-plt.show()
+fig = go.Figure(go.Bar(
+    x=values[::-1],
+    y=labels[::-1],
+    orientation="h",
+    marker_color=[ACCENT if v > esperado else MUTED for v in values[::-1]],
+    text=[f"{v}x ({d})" for v, d in zip(values[::-1], desvio[::-1])],
+    textposition="outside",
+    hovertemplate="Par <b>%{y}</b><br>Co-ocorrencias: <b>%{x}</b><br>%{text}<extra></extra>",
+))
+
+fig.add_vline(x=esperado, line_dash="dash", line_color=HIGHLIGHT, line_width=2,
+              annotation_text=f"Esperado: {esperado:.0f}x",
+              annotation_position="top")
+
+fig.update_layout(
+    **LAYOUT,
+    title="Top 30 pares de dezenas mais frequentes",
+    xaxis=dict(title="Num. de co-ocorrencias", gridcolor="#e0e0e0"),
+    yaxis=dict(title="Par", gridcolor="#e0e0e0", tickfont=dict(size=10)),
+    height=650,
+    showlegend=False,
+    margin=dict(t=70, b=50, l=80, r=120),
+)
+fig.write_html(EXPORTS / "eda_07_pares_coocorrencia.html")
+fig.show()
 
 print(f"Esperado por par: {esperado:.1f}x")
 print(f"Top 5 pares: {top30[:5]}")\
@@ -406,10 +490,7 @@ nb.metadata = {
         "language": "python",
         "name": "python3",
     },
-    "language_info": {
-        "name": "python",
-        "version": "3.12.3",
-    },
+    "language_info": {"name": "python", "version": "3.12.3"},
 }
 
 nb.cells = [
