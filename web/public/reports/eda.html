@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mega Sena - EDA Report</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #1c2333; --border: #21262d;
+  --accent: #e94560; --highlight: #f5a623; --muted: #8892b0;
+  --text: #e2e8f0; --text-dim: #8b949e; --sidebar-w: 230px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px; line-height: 1.6; min-height: 100vh; }
+#app { display: flex; min-height: 100vh; }
+#sidebar { width: var(--sidebar-w); background: var(--surface);
+  border-right: 1px solid var(--border); position: fixed; top: 0; left: 0;
+  height: 100vh; overflow-y: auto; z-index: 100;
+  display: flex; flex-direction: column; }
+#content { margin-left: var(--sidebar-w); flex: 1; padding: 2rem 2.5rem; max-width: 1100px; }
+.sidebar-logo { display: flex; align-items: center; gap: .75rem;
+  padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); }
+.logo-icon  { font-size: 1.4rem; color: var(--accent); }
+.logo-title { font-size: 11px; font-weight: 700; letter-spacing: .12em;
+  color: var(--text); text-transform: uppercase; }
+.logo-sub   { font-size: 9px; letter-spacing: .1em; color: var(--accent); text-transform: uppercase; }
+nav { padding: .75rem 0; flex: 1; }
+.nav-label { font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--text-dim); padding: .75rem 1rem .25rem; }
+.nav-item { display: flex; align-items: center; gap: .6rem; padding: .45rem 1rem;
+  color: var(--text-dim); text-decoration: none; font-size: 13px;
+  transition: all .15s; border-left: 2px solid transparent; }
+.nav-item:hover  { color: var(--text); background: var(--surface2); }
+.nav-item.active { color: var(--text); background: var(--surface2); border-left-color: var(--accent); }
+.nav-icon { font-size: 10px; font-weight: 700; color: var(--accent);
+  font-family: monospace; min-width: 16px; }
+.sidebar-footer { padding: 1rem; border-top: 1px solid var(--border);
+  font-size: 11px; color: var(--text-dim); }
+.page-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+.page-header h1 { font-size: 1.6rem; font-weight: 700; color: var(--text); margin-bottom: .25rem; }
+.page-header p  { color: var(--text-dim); font-size: 13px; }
+.badge { display: inline-block; background: rgba(233,69,96,.15); color: var(--accent);
+  border: 1px solid rgba(233,69,96,.3); border-radius: 4px; font-size: 11px;
+  padding: 2px 8px; margin-left: .5rem; vertical-align: middle; font-weight: 600; }
+.section { margin-bottom: 3rem; scroll-margin-top: 1.5rem; }
+.section-header { display: flex; align-items: flex-start; gap: .85rem; margin-bottom: 1.25rem; }
+.section-num { font-family: monospace; font-size: 10px; font-weight: 700; color: var(--accent);
+  background: rgba(233,69,96,.1); border: 1px solid rgba(233,69,96,.25);
+  border-radius: 4px; padding: 3px 6px; margin-top: 3px; white-space: nowrap; }
+.section-title    { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: .2rem; }
+.section-subtitle { font-size: 12px; color: var(--text-dim); max-width: 640px; }
+.chart-frame { width: 100%; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface); display: block; }
+@media (max-width: 768px) {
+  #sidebar { transform: translateX(-100%); transition: transform .25s; }
+  #sidebar.open { transform: translateX(0); }
+  #content { margin-left: 0; padding: 1rem; }
+  #hamburger { display: flex; position: fixed; top: .75rem; left: .75rem; z-index: 200;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 6px 10px; cursor: pointer; color: var(--text); font-size: 18px; }
+}
+@media (min-width: 769px) { #hamburger { display: none; } }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #484f58; }
+</style>
+</head>
+<body>
+<button id="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+<div id="app">
+<aside id="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-icon">&#9670;</span>
+    <div>
+      <div class="logo-title">Mega Sena</div>
+      <div class="logo-sub">Analytics Lab</div>
+    </div>
+  </div>
+  <nav>
+    <div class="nav-label">Analise Exploratoria</div>
+    <a href="#eda_01_frequencia_dezenas" class="nav-item" data-section="eda_01_frequencia_dezenas"><span class="nav-icon">&bull;</span>Frequencia Historica</a>
+      <a href="#eda_02_frequencia_faixa" class="nav-item" data-section="eda_02_frequencia_faixa"><span class="nav-icon">&gt;</span>Distribuicao por Faixa</a>
+      <a href="#eda_03_pares_impares" class="nav-item" data-section="eda_03_pares_impares"><span class="nav-icon">&gt;</span>Paridade</a>
+      <a href="#eda_04_soma_dezenas" class="nav-item" data-section="eda_04_soma_dezenas"><span class="nav-icon">&gt;</span>Distribuicao da Soma</a>
+      <a href="#eda_05_gap_dezenas" class="nav-item" data-section="eda_05_gap_dezenas"><span class="nav-icon">&gt;</span>Gap entre Aparicoes</a>
+      <a href="#eda_06_evolucao_temporal" class="nav-item" data-section="eda_06_evolucao_temporal"><span class="nav-icon">&gt;</span>Evolucao Temporal</a>
+      <a href="#eda_07_pares_coocorrencia" class="nav-item" data-section="eda_07_pares_coocorrencia"><span class="nav-icon">&gt;</span>Co-ocorrencia de Pares</a>
+  </nav>
+  <div class="sidebar-footer">Passando da Sena &copy; 2025</div>
+</aside>
+<main id="content">
+  <header class="page-header">
+    <h1>Analise Exploratoria <span class="badge">EDA</span></h1>
+    <p>7 analises &bull; gerado a partir dos exports do notebook</p>
+  </header>
+  <section id="eda_01_frequencia_dezenas" class="section"><div class="section-header"><span class="section-num">01</span><div><h2 class="section-title">Frequencia Historica</h2><p class="section-subtitle">Contagem de aparicoes de cada dezena nos sorteios historicos. Em vermelho as acima da media.</p></div></div><iframe src="/exports/eda_01_frequencia_dezenas.html" class="chart-frame" height="420" frameborder="0" scrolling="no" title="Frequencia Historica"></iframe></section>
+    <section id="eda_02_frequencia_faixa" class="section"><div class="section-header"><span class="section-num">02</span><div><h2 class="section-title">Distribuicao por Faixa</h2><p class="section-subtitle">Agrupa as dezenas em faixas de 10 para verificar concentracao no intervalo 1-60.</p></div></div><iframe src="/exports/eda_02_frequencia_faixa.html" class="chart-frame" height="420" frameborder="0" scrolling="no" title="Distribuicao por Faixa"></iframe></section>
+    <section id="eda_03_pares_impares" class="section"><div class="section-header"><span class="section-num">03</span><div><h2 class="section-title">Paridade</h2><p class="section-subtitle">Proporcao de numeros pares e impares por sorteio. A combinacao 3P/3I e a mais comum historicamente.</p></div></div><iframe src="/exports/eda_03_pares_impares.html" class="chart-frame" height="420" frameborder="0" scrolling="no" title="Paridade"></iframe></section>
+    <section id="eda_04_soma_dezenas" class="section"><div class="section-header"><span class="section-num">04</span><div><h2 class="section-title">Distribuicao da Soma</h2><p class="section-subtitle">Soma dos 6 numeros sorteados. Distribuicao aproximadamente normal — sorteios com soma extrema sao raros.</p></div></div><iframe src="/exports/eda_04_soma_dezenas.html" class="chart-frame" height="420" frameborder="0" scrolling="no" title="Distribuicao da Soma"></iframe></section>
+    <section id="eda_05_gap_dezenas" class="section"><div class="section-header"><span class="section-num">05</span><div><h2 class="section-title">Gap entre Aparicoes</h2><p class="section-subtitle">Intervalo medio (em concursos) entre aparicoes consecutivas de cada dezena.</p></div></div><iframe src="/exports/eda_05_gap_dezenas.html" class="chart-frame" height="460" frameborder="0" scrolling="no" title="Gap entre Aparicoes"></iframe></section>
+    <section id="eda_06_evolucao_temporal" class="section"><div class="section-header"><span class="section-num">06</span><div><h2 class="section-title">Evolucao Temporal</h2><p class="section-subtitle">Frequencia em janela deslizante de 200 sorteios. Destaque para top-3 e bottom-3 por frequencia total.</p></div></div><iframe src="/exports/eda_06_evolucao_temporal.html" class="chart-frame" height="460" frameborder="0" scrolling="no" title="Evolucao Temporal"></iframe></section>
+    <section id="eda_07_pares_coocorrencia" class="section"><div class="section-header"><span class="section-num">07</span><div><h2 class="section-title">Co-ocorrencia de Pares</h2><p class="section-subtitle">Os 30 pares de dezenas que mais apareceram juntos no mesmo sorteio.</p></div></div><iframe src="/exports/eda_07_pares_coocorrencia.html" class="chart-frame" height="750" frameborder="0" scrolling="no" title="Co-ocorrencia de Pares"></iframe></section>
+</main>
+</div>
+<script>
+const sections = document.querySelectorAll('.section');
+const navLinks = document.querySelectorAll('.nav-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      navLinks.forEach(a => a.classList.toggle('active', a.dataset.section === id));
+    }
+  });
+}, { threshold: 0.2, rootMargin: '-5% 0px -60% 0px' });
+sections.forEach(s => observer.observe(s));
+navLinks.forEach(a => a.addEventListener('click', () => {
+  document.getElementById('sidebar').classList.remove('open');
+}));
+</script>
+</body>
+</html>
