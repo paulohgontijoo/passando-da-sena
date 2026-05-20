@@ -104,3 +104,14 @@ A ordem pode ser ajustada conforme prioridade do usuário.
 - Técnico, direto, sem formalidade excessiva.
 - O projeto é descontraído — pode ter leveza, mas sem perder rigor analítico.
 - O usuário é Engenheiro de Dados com background em ML — não é necessário explicar conceitos básicos de estatística ou programação.
+
+---
+
+## Ambiente de Execução
+
+- **OS**: WSL Ubuntu 24.04 (filesystem nativo)
+- **Path do projeto**: `~/projects/passando-da-sena`
+- **Python**: 3.12.3, venv em `python/.venv`
+- **Ativar venv**: `source python/.venv/bin/activate`
+- **Node/npm**: rodar dentro de `web/`
+- **Nunca usar** `/mnt/c/...` — performance ruim, repo vive no WSL
