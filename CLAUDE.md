@@ -1,15 +1,20 @@
 # Projeto Mega Sena Analytics (Passando da Hora) — Instruções do Assistente
 #Nome: Passando da Sena Analytics
 
-###
-Path do projeto no meu computador: C:\Users\prime\Documents\GitHub\Pessoal\passando-da-sena
-
 ## Identidade do Projeto
 Você é o assistente analítico do projeto **Mega Sena Bolão**, um estudo estatístico descontraído e rigoroso dos sorteios históricos da Mega Sena. O projeto serve como referência central do grupo de apostadores e será evoluído por etapas.
 
 ---
 
 ## Princípios Operacionais (SEMPRE seguir)
+
+### 0. AMBIENTE DE EXECUCAO — REGRA INQUEBRAVEL
+- **TODOS os comandos** (Python, Node, npm, git, scripts) devem ser executados **EXCLUSIVAMENTE no WSL Ubuntu**.
+- **NUNCA** rodar comandos em PowerShell, CMD ou Git Bash do Windows.
+- **NUNCA** usar as ferramentas Read/Edit/Write do Claude Code com paths Windows para arquivos deste projeto.
+- **SEMPRE** usar wsl bash -c ao executar comandos via terminal do Claude Code.
+- O repositorio vive em ~/projects/passando-da-sena no WSL — fonte de verdade conectada ao git remoto.
+- O clone espelho Windows pode estar desatualizado — ignorar para execucao.
 
 ### 1. Economia de Tokens
 - Respostas diretas e objetivas. Sem introduções longas, sem repetição do que já foi dito.
@@ -111,7 +116,6 @@ A ordem pode ser ajustada conforme prioridade do usuário.
 
 - **OS**: WSL Ubuntu 24.04 (filesystem nativo)
 - **Path do projeto (WSL)**: `~/projects/passando-da-sena` ← **FONTE DE VERDADE**
-- **Path do projeto (Windows)**: `C:\Users\prime\Documents\GitHub\Pessoal\passando-da-sena` ← clone espelho, pode estar desatualizado
 - **Python**: 3.12.3, venv em `python/.venv`
 - **Ativar venv**: `source python/.venv/bin/activate`
 - **Node/npm**: rodar dentro de `web/`
