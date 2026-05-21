@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
-import { logout } from '@/app/login/actions'
+import { Nav } from '@/components/Nav'
 import { criarUsuario, alterarRole } from './actions'
 import type { UserRole } from '@/types/database'
 
@@ -31,30 +30,13 @@ export default async function AdminUsuariosPage() {
 
   return (
     <div className="min-h-screen bg-bg">
-      <nav className="bg-primary border-b border-muted/20 px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <span className="text-brand font-bold text-lg">Passando da Sena</span>
-          <div className="flex gap-4">
-            <Link href="/dashboard" className="text-muted text-sm hover:text-accent transition-colors">Dashboard</Link>
-            <Link href="/bolao" className="text-muted text-sm hover:text-accent transition-colors">Bolao</Link>
-            <Link href="/analytics" className="text-muted text-sm hover:text-accent transition-colors">Analytics</Link>
-            <Link href="/admin/usuarios" className="text-brand text-sm hover:text-accent transition-colors">Usuarios</Link>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="text-muted text-xs">{profile.nickname}</span>
-          <form action={logout}>
-            <button type="submit" className="text-muted text-xs hover:text-accent cursor-pointer">Sair</button>
-          </form>
-        </div>
-      </nav>
+      <Nav />
 
       <main className="max-w-4xl mx-auto p-6 space-y-6">
-        <h1 className="text-primary text-2xl font-bold">Usuarios</h1>
+        <h1 className="text-primary text-2xl font-bold">Usuários</h1>
 
-        {/* Formulario criar usuario */}
         <div className="bg-surface rounded-lg p-6">
-          <h2 className="text-brand font-semibold mb-4">Novo Usuario</h2>
+          <h2 className="text-brand font-semibold mb-4">Novo Usuário</h2>
           <form action={criarUsuario} className="flex flex-wrap gap-3 items-end">
             <label className="flex flex-col gap-1">
               <span className="text-muted text-xs uppercase tracking-wide">Nickname</span>
@@ -63,7 +45,7 @@ export default async function AdminUsuariosPage() {
                 name="nickname"
                 required
                 autoCapitalize="none"
-                className="bg-primary border border-muted/30 rounded px-3 py-2 text-brand text-sm w-40 focus:outline-none focus:border-accent"
+                className="bg-primary border border-muted/30 rounded px-3 py-2 text-brand text-sm w-36 focus:outline-none focus:border-accent"
               />
             </label>
             <label className="flex flex-col gap-1">
@@ -97,21 +79,17 @@ export default async function AdminUsuariosPage() {
           </form>
         </div>
 
-        {/* Lista de usuarios */}
         <div className="bg-surface rounded-lg p-6">
           <h2 className="text-brand font-semibold mb-4">
-            Usuarios cadastrados
+            Cadastrados
             <span className="text-muted text-xs font-normal ml-2">({usuarios?.length ?? 0})</span>
           </h2>
 
           <div className="space-y-2">
             {(usuarios ?? []).map((u) => (
-              <div
-                key={u.id}
-                className="flex items-center justify-between bg-primary rounded px-4 py-3"
-              >
+              <div key={u.id} className="flex items-center justify-between bg-primary rounded px-4 py-3">
                 <div className="flex items-center gap-4">
-                  <span className="text-brand text-sm font-medium w-32 truncate">{u.nickname}</span>
+                  <span className="text-brand text-sm font-medium w-28 truncate">{u.nickname}</span>
                   <span className="text-muted text-xs font-mono">{u.telefone}</span>
                 </div>
                 <div className="flex items-center gap-3">

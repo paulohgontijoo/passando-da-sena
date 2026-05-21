@@ -19,8 +19,9 @@ export async function POST(req: NextRequest) {
   const formData = await req.formData()
   const bolao_id = Number(formData.get('bolao_id'))
   const concurso_nr = Number(formData.get('concurso_nr'))
+  const tipo_loteria = formData.get('tipo_loteria') as string || 'megasena'
   const valor_total_jogado = Number(formData.get('valor_total_jogado'))
-  const numerosRaw = formData.get('numeros') as string
+  const numerosRaw = formData.get('numeros') as string | null
 
   if (!bolao_id || !concurso_nr || !valor_total_jogado) {
     return NextResponse.json({ error: 'Campos obrigatorios ausentes' }, { status: 400 })
@@ -31,6 +32,7 @@ export async function POST(req: NextRequest) {
     .insert({
       bolao_id,
       concurso_nr,
+      tipo_loteria,
       valor_total_jogado,
       status: 'aberto',
       criado_por: user.id,
@@ -44,14 +46,16 @@ export async function POST(req: NextRequest) {
 
   if (numerosRaw) {
     const jogos: number[][] = JSON.parse(numerosRaw)
-    const apostasPayload = jogos.map((numeros) => ({
-      ciclo_id: ciclo.id,
-      numeros,
-      registrado_por: user.id,
-    }))
-    const { error: apostasErr } = await supabase.from('apostas').insert(apostasPayload)
-    if (apostasErr) {
-      return NextResponse.json({ error: apostasErr.message }, { status: 500 })
+    if (jogos.length > 0) {
+      const apostasPayload = jogos.map((numeros) => ({
+        ciclo_id: ciclo.id,
+        numeros,
+        registrado_por: user.id,
+      }))
+      const { error: apostasErr } = await supabase.from('apostas').insert(apostasPayload)
+      if (apostasErr) {
+        return NextResponse.json({ error: apostasErr.message }, { status: 500 })
+      }
     }
   }
 

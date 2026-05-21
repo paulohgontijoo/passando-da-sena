@@ -95,6 +95,19 @@ npm run test:e2e:update
 > **Regra**: toda alteração visual intencional (layout, cores, componentes) exige `npm run test:e2e:update` antes de commitar, para manter os baselines sincronizados.
 
 
+### Testes — Playwright
+
+- **Ferramenta**: Playwright (), rodando Chromium headless.
+- **Foco**: regressão visual (snapshots) + fluxos de UX — não lógica de negócio.
+- **Localização**:  (specs) e  (baselines commitados).
+- **Auth nos testes**:  faz login real no Supabase uma vez por run, salva cookies em  (gitignored).
+- **Credenciais de teste**: arquivo  (gitignored) com  e . Template em . Usuário deve existir no Supabase Dashboard.
+
+
+
+> **Regra**: toda alteração visual intencional (layout, cores, componentes) exige  antes de commitar, para manter os baselines sincronizados.
+
+
 ### Roles e Controle de Acesso
 Três níveis de acesso com visão customizada:
 

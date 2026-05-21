@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
-import { logout } from '@/app/login/actions'
+import { Nav } from '@/components/Nav'
 import { solicitarParticipacao } from '@/app/bolao/actions'
 import type { CicloStatus, ParticipacaoStatus } from '@/types/database'
 
@@ -13,7 +12,7 @@ const statusCicloLabel: Record<CicloStatus, string> = {
 }
 
 const statusParticipacaoLabel: Record<ParticipacaoStatus, string> = {
-  pendente: 'Aguardando aprovacao',
+  pendente: 'Aguardando aprovação',
   aprovado: 'Aprovado',
   rejeitado: 'Rejeitado',
 }
@@ -33,14 +32,12 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Perfil do usuario logado
   const { data: profile } = await supabase
     .from('profiles')
     .select('nickname, role')
     .eq('id', user.id)
     .single()
 
-  // Bolao ativo + ciclo ativo
   const { data: bolaoAtivo } = await supabase
     .from('boloes')
     .select('id, nome')
@@ -52,7 +49,7 @@ export default async function DashboardPage() {
   const cicloAtivo = bolaoAtivo
     ? (await supabase
         .from('ciclos')
-        .select('id, concurso_nr, status, valor_total_jogado, valor_cota, premio_obtido')
+        .select('id, concurso_nr, status, valor_total_jogado, valor_cota, premio_obtido, tipo_loteria')
         .eq('bolao_id', bolaoAtivo.id)
         .in('status', ['aberto', 'fechado'])
         .order('created_at', { ascending: false })
@@ -61,7 +58,6 @@ export default async function DashboardPage() {
       ).data
     : null
 
-  // Apostas do ciclo ativo
   const apostas = cicloAtivo
     ? (await supabase
         .from('apostas')
@@ -71,7 +67,6 @@ export default async function DashboardPage() {
       ).data ?? []
     : []
 
-  // Participacao do usuario no ciclo ativo
   const participacao = cicloAtivo
     ? (await supabase
         .from('participacoes')
@@ -90,59 +85,23 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-bg">
-      <nav className="bg-primary border-b border-muted/20 px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <span className="text-brand font-bold text-lg">Passando da Sena</span>
-          <div className="flex gap-4">
-            <Link href="/dashboard" className="text-brand text-sm hover:text-accent transition-colors">
-              Dashboard
-            </Link>
-            <Link href="/bolao" className="text-muted text-sm hover:text-accent transition-colors">
-              Bolao
-            </Link>
-            <Link href="/analytics" className="text-muted text-sm hover:text-accent transition-colors">
-              Analytics
-            </Link>
-            {isMod && (
-              <Link href="/admin/usuarios" className="text-muted text-sm hover:text-accent transition-colors">
-                Usuarios
-              </Link>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="text-muted text-xs">{profile?.nickname}</span>
-          <form action={logout}>
-            <button type="submit" className="text-muted text-xs hover:text-accent transition-colors cursor-pointer">
-              Sair
-            </button>
-          </form>
-        </div>
-      </nav>
+      <Nav />
 
       <main className="max-w-4xl mx-auto p-6 space-y-6">
-
-        {/* Cabecalho */}
         <div>
           <h1 className="text-primary text-2xl font-bold">Dashboard</h1>
-          {bolaoAtivo && (
-            <p className="text-muted text-sm mt-1">{bolaoAtivo.nome}</p>
-          )}
+          {bolaoAtivo && <p className="text-muted text-sm mt-1">{bolaoAtivo.nome}</p>}
         </div>
 
-        {/* Sem bolao ativo */}
         {!bolaoAtivo && (
           <div className="bg-surface rounded-lg p-6 text-muted text-sm">
             Nenhum bolao ativo no momento.
             {isMod && (
-              <Link href="/bolao" className="text-accent ml-2 hover:underline">
-                Criar bolao
-              </Link>
+              <a href="/bolao" className="text-accent ml-2 hover:underline">Criar bolao</a>
             )}
           </div>
         )}
 
-        {/* Ciclo ativo */}
         {cicloAtivo && (
           <div className="bg-surface rounded-lg p-6 space-y-4">
             <div className="flex items-center justify-between">
@@ -150,7 +109,9 @@ export default async function DashboardPage() {
                 <h2 className="text-brand font-semibold">
                   Concurso #{cicloAtivo.concurso_nr}
                 </h2>
-                <span className="text-muted text-xs">{statusCicloLabel[cicloAtivo.status as CicloStatus]}</span>
+                <span className="text-muted text-xs capitalize">
+                  {statusCicloLabel[cicloAtivo.status as CicloStatus]}
+                </span>
               </div>
               <div className="text-right">
                 <p className="text-muted text-xs">Valor da cota</p>
@@ -158,7 +119,6 @@ export default async function DashboardPage() {
               </div>
             </div>
 
-            {/* Apostas */}
             {apostas.length > 0 && (
               <div>
                 <p className="text-muted text-xs uppercase tracking-wide mb-2">
@@ -176,7 +136,6 @@ export default async function DashboardPage() {
               </div>
             )}
 
-            {/* Totais */}
             <div className="grid grid-cols-2 gap-4 pt-2 border-t border-muted/20">
               <div>
                 <p className="text-muted text-xs">Total investido</p>
@@ -192,20 +151,19 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* Participacao do usuario */}
         {cicloAtivo && (
           <div className="bg-surface rounded-lg p-6">
-            <h2 className="text-brand font-semibold mb-4">Sua Participacao</h2>
+            <h2 className="text-brand font-semibold mb-4">Sua Participação</h2>
 
             {!participacao && (
               <div className="space-y-3">
-                <p className="text-muted text-sm">Voce ainda nao solicitou participacao neste ciclo.</p>
+                <p className="text-muted text-sm">Você ainda não solicitou participação neste ciclo.</p>
                 <form action={solicitarParticipacao.bind(null, cicloAtivo.id)}>
                   <button
                     type="submit"
                     className="bg-accent hover:bg-accent/90 text-white text-sm font-semibold px-4 py-2 rounded transition-colors cursor-pointer"
                   >
-                    Solicitar participacao
+                    Solicitar participação
                   </button>
                 </form>
               </div>
@@ -239,7 +197,6 @@ export default async function DashboardPage() {
             )}
           </div>
         )}
-
       </main>
     </div>
   )

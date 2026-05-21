@@ -1,13 +1,14 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
-import { logout } from '@/app/login/actions'
+import { Nav } from '@/components/Nav'
 import {
   aprovarParticipacao,
   rejeitarParticipacao,
   marcarPagamento,
   atualizarStatusCiclo,
   registrarPremio,
+  criarBolao,
 } from './actions'
 import type { CicloStatus, ParticipacaoStatus } from '@/types/database'
 
@@ -41,7 +42,6 @@ export default async function BolaoPage() {
 
   const isMod = profile?.role === 'admin' || profile?.role === 'moderador'
 
-  // Bolao ativo
   const { data: bolaoAtivo } = await supabase
     .from('boloes')
     .select('id, nome, descricao')
@@ -50,11 +50,10 @@ export default async function BolaoPage() {
     .limit(1)
     .single()
 
-  // Ciclos do bolao (todos, ordenados por data desc)
   const { data: ciclos } = bolaoAtivo
     ? await supabase
         .from('ciclos')
-        .select('id, concurso_nr, status, valor_total_jogado, valor_cota, premio_obtido, created_at')
+        .select('id, concurso_nr, status, valor_total_jogado, valor_cota, premio_obtido, tipo_loteria, created_at')
         .eq('bolao_id', bolaoAtivo.id)
         .order('created_at', { ascending: false })
     : { data: [] }
@@ -63,7 +62,6 @@ export default async function BolaoPage() {
     (c) => c.status === 'aberto' || c.status === 'rascunho'
   ) ?? null
 
-  // Participacoes do ciclo ativo (com perfil)
   const { data: participacoes } = cicloAtivo
     ? await supabase
         .from('participacoes')
@@ -72,7 +70,6 @@ export default async function BolaoPage() {
         .order('created_at')
     : { data: [] }
 
-  // Apostas do ciclo ativo
   const { data: apostas } = cicloAtivo
     ? await supabase
         .from('apostas')
@@ -81,43 +78,25 @@ export default async function BolaoPage() {
         .order('id')
     : { data: [] }
 
-  const totalAprovado = (participacoes ?? [])
-    .filter((p) => p.status === 'aprovado')
-    .reduce((acc, p) => acc + p.num_cotas * (cicloAtivo?.valor_cota ?? 0), 0)
-
   const totalPago = (participacoes ?? [])
     .filter((p) => p.status === 'aprovado')
     .reduce((acc, p) => acc + p.valor_pago, 0)
 
+  const totalDevido = (participacoes ?? [])
+    .filter((p) => p.status === 'aprovado')
+    .reduce((acc, p) => acc + p.num_cotas * (cicloAtivo?.valor_cota ?? 0), 0)
+
   return (
     <div className="min-h-screen bg-bg">
-      <nav className="bg-primary border-b border-muted/20 px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <span className="text-brand font-bold text-lg">Passando da Sena</span>
-          <div className="flex gap-4">
-            <Link href="/dashboard" className="text-muted text-sm hover:text-accent transition-colors">Dashboard</Link>
-            <Link href="/bolao" className="text-brand text-sm hover:text-accent transition-colors">Bolao</Link>
-            <Link href="/analytics" className="text-muted text-sm hover:text-accent transition-colors">Analytics</Link>
-            {isMod && (
-              <Link href="/admin/usuarios" className="text-muted text-sm hover:text-accent transition-colors">Usuarios</Link>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="text-muted text-xs">{profile?.nickname}</span>
-          <form action={logout}>
-            <button type="submit" className="text-muted text-xs hover:text-accent cursor-pointer">Sair</button>
-          </form>
-        </div>
-      </nav>
+      <Nav />
 
       <main className="max-w-5xl mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-primary text-2xl font-bold">Bolao</h1>
+            <h1 className="text-primary text-2xl font-bold">Bolão</h1>
             {bolaoAtivo && <p className="text-muted text-sm">{bolaoAtivo.nome}</p>}
           </div>
-          {isMod && (
+          {isMod && bolaoAtivo && (
             <Link
               href="/bolao/ciclos/novo"
               className="bg-accent hover:bg-accent/90 text-white text-sm font-semibold px-4 py-2 rounded transition-colors"
@@ -127,11 +106,43 @@ export default async function BolaoPage() {
           )}
         </div>
 
-        {/* Sem bolao */}
-        {!bolaoAtivo && (
+        {/* Criar bolão se não existir */}
+        {!bolaoAtivo && isMod && (
+          <div className="bg-surface rounded-lg p-6 space-y-4">
+            <h2 className="text-brand font-semibold">Criar Bolão</h2>
+            <form action={criarBolao} className="flex flex-wrap gap-3 items-end">
+              <label className="flex flex-col gap-1">
+                <span className="text-muted text-xs uppercase tracking-wide">Nome</span>
+                <input
+                  type="text"
+                  name="nome"
+                  required
+                  placeholder="ex: Bolão dos Brothers"
+                  className="bg-primary border border-muted/30 rounded px-3 py-2 text-brand text-sm w-56 focus:outline-none focus:border-accent"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-muted text-xs uppercase tracking-wide">Descrição</span>
+                <input
+                  type="text"
+                  name="descricao"
+                  placeholder="Opcional"
+                  className="bg-primary border border-muted/30 rounded px-3 py-2 text-brand text-sm w-56 focus:outline-none focus:border-accent"
+                />
+              </label>
+              <button
+                type="submit"
+                className="bg-accent hover:bg-accent/90 text-white text-sm font-semibold px-4 py-2 rounded transition-colors cursor-pointer"
+              >
+                Criar
+              </button>
+            </form>
+          </div>
+        )}
+
+        {!bolaoAtivo && !isMod && (
           <div className="bg-surface rounded-lg p-6 text-muted text-sm">
-            Nenhum bolao ativo.
-            {isMod && ' Crie um bolao primeiro via painel admin.'}
+            Nenhum bolão ativo no momento.
           </div>
         )}
 
@@ -153,7 +164,6 @@ export default async function BolaoPage() {
               </div>
             </div>
 
-            {/* Apostas */}
             {(apostas ?? []).length > 0 && (
               <div>
                 <p className="text-muted text-xs uppercase tracking-wide mb-2">
@@ -169,25 +179,27 @@ export default async function BolaoPage() {
               </div>
             )}
 
-            {/* Resumo financeiro */}
+            {(apostas ?? []).length === 0 && (
+              <p className="text-muted text-xs">Nenhum jogo registrado ainda.</p>
+            )}
+
             <div className="grid grid-cols-3 gap-4 border-t border-muted/20 pt-4">
               <div>
                 <p className="text-muted text-xs">Total investido</p>
                 <p className="text-brand font-semibold">{fmt(cicloAtivo.valor_total_jogado)}</p>
               </div>
               <div>
-                <p className="text-muted text-xs">Total arrecadado</p>
+                <p className="text-muted text-xs">Arrecadado</p>
                 <p className={`font-semibold ${totalPago >= cicloAtivo.valor_total_jogado ? 'text-green-400' : 'text-highlight'}`}>
                   {fmt(totalPago)}
                 </p>
               </div>
               <div>
                 <p className="text-muted text-xs">A receber</p>
-                <p className="text-accent font-semibold">{fmt(Math.max(0, totalAprovado - totalPago))}</p>
+                <p className="text-accent font-semibold">{fmt(Math.max(0, totalDevido - totalPago))}</p>
               </div>
             </div>
 
-            {/* Acoes moderador */}
             {isMod && cicloAtivo.status === 'aberto' && (
               <div className="flex gap-2 border-t border-muted/20 pt-4">
                 <form action={atualizarStatusCiclo.bind(null, cicloAtivo.id, 'fechado')}>
@@ -197,6 +209,7 @@ export default async function BolaoPage() {
                 </form>
               </div>
             )}
+
             {isMod && cicloAtivo.status === 'fechado' && (
               <form action={registrarPremioAction.bind(null, cicloAtivo.id)} className="flex gap-2 items-center border-t border-muted/20 pt-4">
                 <input
@@ -204,8 +217,8 @@ export default async function BolaoPage() {
                   name="premio"
                   step="0.01"
                   min="0"
-                  placeholder="Premio obtido (R$)"
-                  className="bg-primary border border-muted/30 rounded px-3 py-1.5 text-brand text-sm w-44 focus:outline-none focus:border-accent"
+                  placeholder="Prêmio obtido (R$)"
+                  className="bg-primary border border-muted/30 rounded px-3 py-1.5 text-brand text-sm w-48 focus:outline-none focus:border-accent"
                 />
                 <button type="submit" className="text-xs bg-green-700 hover:bg-green-600 text-white px-3 py-1.5 rounded cursor-pointer">
                   Registrar resultado
@@ -215,33 +228,33 @@ export default async function BolaoPage() {
           </div>
         )}
 
-        {/* Lista de participacoes */}
+        {/* Participantes */}
         {cicloAtivo && (
           <div className="bg-surface rounded-lg p-6">
             <h2 className="text-brand font-semibold mb-4">
               Participantes
               <span className="text-muted text-xs font-normal ml-2">
-                {(participacoes ?? []).filter((p) => p.status === 'aprovado').length} aprovados
+                {(participacoes ?? []).filter((p) => p.status === 'aprovado').length} aprovados ·{' '}
+                {(participacoes ?? []).filter((p) => p.status === 'pendente').length} pendentes
               </span>
             </h2>
 
             {(participacoes ?? []).length === 0 && (
-              <p className="text-muted text-sm">Nenhuma solicitacao ainda.</p>
+              <p className="text-muted text-sm">Nenhuma solicitação ainda.</p>
             )}
 
             <div className="space-y-2">
               {(participacoes ?? []).map((p) => {
-                const profileData = Array.isArray(p.profiles) ? (p.profiles[0] as { nickname: string } | undefined) : (p.profiles as { nickname: string } | null)
+                const profileData = Array.isArray(p.profiles)
+                  ? (p.profiles[0] as { nickname: string } | undefined)
+                  : (p.profiles as { nickname: string } | null)
                 const valorDevido = p.num_cotas * (cicloAtivo?.valor_cota ?? 0)
                 const pago = p.valor_pago >= valorDevido && valorDevido > 0
 
                 return (
-                  <div
-                    key={p.id}
-                    className="flex items-center justify-between bg-primary rounded px-4 py-3"
-                  >
+                  <div key={p.id} className="flex items-center justify-between bg-primary rounded px-4 py-3">
                     <div className="flex items-center gap-4">
-                      <span className="text-brand text-sm font-medium w-32 truncate">
+                      <span className="text-brand text-sm font-medium w-28 truncate">
                         {profileData?.nickname ?? '—'}
                       </span>
                       <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -253,7 +266,9 @@ export default async function BolaoPage() {
                       }`}>
                         {statusLabel[p.status as ParticipacaoStatus]}
                       </span>
-                      <span className="text-muted text-xs">{p.num_cotas} cota{p.num_cotas > 1 ? 's' : ''}</span>
+                      <span className="text-muted text-xs">
+                        {p.num_cotas} cota{p.num_cotas > 1 ? 's' : ''}
+                      </span>
                     </div>
 
                     <div className="flex items-center gap-6">
@@ -301,10 +316,10 @@ export default async function BolaoPage() {
           </div>
         )}
 
-        {/* Historico de ciclos */}
+        {/* Histórico */}
         {(ciclos ?? []).filter((c) => c.status === 'sorteado' || c.status === 'fechado').length > 0 && (
           <div className="bg-surface rounded-lg p-6">
-            <h2 className="text-brand font-semibold mb-4">Historico</h2>
+            <h2 className="text-brand font-semibold mb-4">Histórico</h2>
             <div className="space-y-2">
               {(ciclos ?? [])
                 .filter((c) => c.status === 'sorteado' || c.status === 'fechado')
@@ -317,7 +332,7 @@ export default async function BolaoPage() {
                     <div className="text-right">
                       <p className="text-brand text-sm">{fmt(c.valor_total_jogado)}</p>
                       {c.premio_obtido !== null && (
-                        <p className="text-green-400 text-xs">Premio: {fmt(c.premio_obtido)}</p>
+                        <p className="text-green-400 text-xs">Prêmio: {fmt(c.premio_obtido)}</p>
                       )}
                     </div>
                   </div>
@@ -330,7 +345,6 @@ export default async function BolaoPage() {
   )
 }
 
-// Wrappers para acoes com argumentos extras em forms
 async function registrarPremioAction(cicloId: number, formData: FormData) {
   'use server'
   const premio = Number(formData.get('premio'))

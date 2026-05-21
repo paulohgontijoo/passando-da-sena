@@ -65,6 +65,13 @@ npm run test:e2e:update
 Os snapshots baseline ficam em `web/tests/e2e/__snapshots__/` e devem ser commitados junto com mudanças visuais intencionais.
 
 
+### Testes (Playwright)
+
+
+
+Os snapshots baseline ficam em  e devem ser commitados junto com mudanças visuais intencionais.
+
+
 ## Stack
 - **Python**: pandas, numpy, scipy, matplotlib, seaborn, plotly
 - **Web**: Next.js (App Router), Supabase Auth, Tailwind CSS, TypeScript
