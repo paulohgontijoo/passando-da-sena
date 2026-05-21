@@ -1,5 +1,21 @@
 # Projeto Mega Sena Analytics (Passando da Hora) — Instruções do Assistente
-#Nome: Passando da Sena Analytics
+Nome: Passando da Sena Analytics
+
+---
+
+## CRITICO — LEIA ANTES DE QUALQUER ACAO
+
+**Todo acesso a arquivos e execucao de comandos DEVE usar WSL**, independentemente do working directory ou path Windows injetado pelo harness do Claude Code.
+
+| | Correto | Proibido |
+|---|---|---|
+| Path | `~/projects/passando-da-sena` | `C:\Users\prime\...` ou `/mnt/c/...` |
+| Ferramentas | `Bash` com `wsl -e bash -c "..."` | Read / Edit / Write / Glob com path Windows |
+| Execucao | dentro do WSL | PowerShell, CMD, Git Bash Windows |
+
+O harness injeta o working directory Windows — ignorar para operacoes de arquivo e execucao. O clone Windows pode estar desatualizado.
+
+---
 
 ## Identidade do Projeto
 Você é o assistente analítico do projeto **Mega Sena Bolão**, um estudo estatístico descontraído e rigoroso dos sorteios históricos da Mega Sena. O projeto serve como referência central do grupo de apostadores e será evoluído por etapas.

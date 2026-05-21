@@ -10,6 +10,12 @@
   --accent: #e94560; --highlight: #f5a623; --muted: #8892b0;
   --text: #e2e8f0; --text-dim: #8b949e; --sidebar-w: 230px;
 }
+[data-theme="light"] {
+  --bg: #f5f6fa; --surface: #ffffff; --surface2: #eef0f5; --border: #d0d7de;
+  --text: #1c2333; --text-dim: #57606a;
+}
+[data-theme="light"] ::-webkit-scrollbar-track { background: #f5f6fa; }
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: #c8ccd0; }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -89,7 +95,7 @@ nav { padding: .75rem 0; flex: 1; }
       <a href="#eda_06_evolucao_temporal" class="nav-item" data-section="eda_06_evolucao_temporal"><span class="nav-icon">&gt;</span>Evolucao Temporal</a>
       <a href="#eda_07_pares_coocorrencia" class="nav-item" data-section="eda_07_pares_coocorrencia"><span class="nav-icon">&gt;</span>Co-ocorrencia de Pares</a>
   </nav>
-  <div class="sidebar-footer">Passando da Sena &copy; 2025</div>
+  <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;"><span>Passando da Sena &copy; 2025</span><button id="theme-toggle" onclick="toggleTheme()" style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;color:var(--text-dim);font-size:13px;line-height:1.4;">&#9728;</button></div>
 </aside>
 <main id="content">
   <header class="page-header">
@@ -106,6 +112,24 @@ nav { padding: .75rem 0; flex: 1; }
 </main>
 </div>
 <script>
+function toggleTheme() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const next = isLight ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  document.getElementById('theme-toggle').textContent = next === 'light' ? '☽' : '☀';
+  localStorage.setItem('eda-theme', next);
+  document.querySelectorAll('.chart-frame').forEach(function(iframe) {
+    try { iframe.contentWindow.postMessage({type:'set-theme', theme:next}, '*'); } catch(e) {}
+  });
+}
+(function() {
+  const saved = localStorage.getItem('eda-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('theme-toggle');
+    if (btn) btn.textContent = saved === 'light' ? '☽' : '☀';
+  });
+})();
 const sections = document.querySelectorAll('.section');
 const navLinks = document.querySelectorAll('.nav-item');
 const observer = new IntersectionObserver(entries => {
