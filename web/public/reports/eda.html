@@ -270,6 +270,57 @@ body.presentation #pres-overlay { display: block; }
 
 body.presentation #content { padding-top: 70px; }
 
+
+.page-header { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+
+#start-pres-btn {
+  display: inline-flex; align-items: center; gap: .65rem;
+  padding: .55rem 1.3rem .55rem 1rem;
+  border-radius: 9px; cursor: pointer; font-size: 13px;
+  font-weight: 600; letter-spacing: .04em; color: var(--text);
+  position: relative; overflow: hidden;
+  background: linear-gradient(var(--surface), var(--surface)) padding-box,
+              linear-gradient(135deg, var(--accent) 0%, var(--highlight) 100%) border-box;
+  border: 1.5px solid transparent;
+  transition: color .2s, transform .15s, box-shadow .25s;
+  animation: presBreathe 3.2s ease-in-out infinite;
+}
+@keyframes presBreathe {
+  0%,100% { box-shadow: 0 0 0 0 rgba(233,69,96,0),   0 2px 8px rgba(0,0,0,.2); }
+  50%      { box-shadow: 0 0 0 5px rgba(233,69,96,.1), 0 4px 16px rgba(233,69,96,.15); }
+}
+#start-pres-btn:hover {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--highlight) 100%) padding-box,
+              linear-gradient(135deg, var(--accent) 0%, var(--highlight) 100%) border-box;
+  color: #fff; transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(233,69,96,.35), 0 2px 8px rgba(0,0,0,.3);
+  animation: none;
+}
+#start-pres-btn:active { transform: translateY(0) scale(.97); transition: transform .08s; }
+
+.pres-btn-icon {
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--accent), var(--highlight));
+  transition: transform .2s;
+}
+#start-pres-btn:hover .pres-btn-icon { transform: scale(1.15) rotate(5deg); }
+.pres-btn-icon svg { display: block; }
+
+.pres-btn-label { display: flex; flex-direction: column; line-height: 1.2; }
+.pres-btn-label span:first-child { font-size: 13px; font-weight: 700; }
+.pres-btn-label span:last-child  { font-size: 9px; letter-spacing: .08em;
+  text-transform: uppercase; opacity: .65; }
+
+/* ripple */
+.pres-ripple {
+  position: absolute; border-radius: 50%;
+  background: rgba(255,255,255,.25); transform: scale(0);
+  animation: presRipple .5s linear; pointer-events: none;
+}
+@keyframes presRipple {
+  to { transform: scale(4); opacity: 0; }
+}
 </style>
 </head>
 <body>
@@ -366,12 +417,25 @@ body.presentation #content { padding-top: 70px; }
       <a href="#eda_06_evolucao_temporal" class="nav-item" data-section="eda_06_evolucao_temporal"><span class="nav-icon-num">06</span>Evolucao Temporal</a>
       <a href="#eda_07_pares_coocorrencia" class="nav-item" data-section="eda_07_pares_coocorrencia"><span class="nav-icon-num">07</span>Co-ocorrencia de Pares</a>
   </nav>
-  <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;"><span>Passando da Sena &copy; 2026</span><button onclick="enterPresentation()" title="Modo Apresentacao" style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;color:var(--text-dim);font-size:12px;line-height:1.4;margin-right:.25rem;" id="pres-btn">&#9654;</button><button id="theme-toggle" onclick="toggleTheme()" style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;color:var(--text-dim);font-size:13px;line-height:1.4;">&#9728;</button></div>
+  <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;"><span>Passando da Sena &copy; 2026</span><button id="theme-toggle" onclick="toggleTheme()" style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;color:var(--text-dim);font-size:13px;line-height:1.4;">&#9728;</button></div>
 </aside>
 <main id="content">
   <header class="page-header">
-    <h1>Analise Exploratoria <span class="badge">EDA</span></h1>
-    <p>7 analises &bull; gerado a partir dos exports do notebook</p>
+    <div>
+      <h1>Analise Exploratoria <span class="badge">EDA</span></h1>
+      <p>7 analises &bull; gerado a partir dos exports do notebook</p>
+    </div>
+    <button id="start-pres-btn" onclick="handlePresClick(event)">
+      <div class="pres-btn-icon">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <polygon points="3,1 11,6 3,11" fill="white"/>
+        </svg>
+      </div>
+      <div class="pres-btn-label">
+        <span>Iniciar Experiencia</span>
+        <span>modo apresentacao</span>
+      </div>
+    </button>
   </header>
   <section id="eda_01_frequencia_dezenas" class="section"><div class="section-header" onclick="toggleInsight('eda_01_frequencia_dezenas')"><span class="section-num">01</span><div><h2 class="section-title">Frequencia Historica</h2><p class="section-subtitle">Contagem de aparicoes de cada dezena nos sorteios historicos. Em vermelho as acima da media.</p></div><span style="display:inline-flex;align-items:center;gap:.3rem;margin-left:.5rem;margin-top:3px;"><span class="insight-btn">i</span><span style="font-size:10px;color:var(--text-dim);letter-spacing:.04em;cursor:pointer;">insights</span></span></div><div class="insight-card open" id="insight-eda_01_frequencia_dezenas"><strong>Dezena 10</strong> lidera com <strong>353</strong> aparições. <strong>Dezena 26</strong> é a menos frequente: <strong>246x</strong>.<div class="stat-row"><div class="stat"><span class="stat-val">300x</span><span class="stat-lbl">Média geral</span></div><div class="stat"><span class="stat-val">30</span><span class="stat-lbl">Acima da média</span></div><div class="stat"><span class="stat-val">107</span><span class="stat-lbl">Maior diferença</span></div></div></div><iframe src="/exports/eda_01_frequencia_dezenas.html" class="chart-frame" height="420" frameborder="0" scrolling="no" title="Frequencia Historica"></iframe></section>
     <section id="eda_02_frequencia_faixa" class="section"><div class="section-header" onclick="toggleInsight('eda_02_frequencia_faixa')"><span class="section-num">02</span><div><h2 class="section-title">Distribuicao por Faixa</h2><p class="section-subtitle">Agrupa as dezenas em faixas de 10 para verificar concentracao no intervalo 1-60.</p></div><span style="display:inline-flex;align-items:center;gap:.3rem;margin-left:.5rem;margin-top:3px;"><span class="insight-btn">i</span><span style="font-size:10px;color:var(--text-dim);letter-spacing:.04em;cursor:pointer;">insights</span></span></div><div class="insight-card open" id="insight-eda_02_frequencia_faixa">Faixa <strong>31–40</strong> é a mais frequente (17.1%). Faixa <strong>21–30</strong> é a menos (16.2%). Distribuição quase uniforme — diferença máxima entre faixas é de apenas <strong>0.9 p.p.</strong><div class="stat-row"><div class="stat"><span class="stat-val">31–40</span><span class="stat-lbl">Mais freq.</span></div><div class="stat"><span class="stat-val">21–30</span><span class="stat-lbl">Menos freq.</span></div><div class="stat"><span class="stat-val">16.7%</span><span class="stat-lbl">Esperado uniform.</span></div></div></div><iframe src="/exports/eda_02_frequencia_faixa.html" class="chart-frame" height="420" frameborder="0" scrolling="no" title="Distribuicao por Faixa"></iframe></section>
@@ -514,6 +578,17 @@ var _presTitles = [
 ];
 var _presIdx = 0;
 
+function handlePresClick(e) {
+  var btn = document.getElementById('start-pres-btn');
+  var r = document.createElement('span');
+  var d = Math.max(btn.offsetWidth, btn.offsetHeight);
+  var rect = btn.getBoundingClientRect();
+  r.className = 'pres-ripple';
+  r.style.cssText = 'width:'+d+'px;height:'+d+'px;left:'+(e.clientX-rect.left-d/2)+'px;top:'+(e.clientY-rect.top-d/2)+'px';
+  btn.appendChild(r);
+  setTimeout(function(){ r.remove(); }, 520);
+  setTimeout(enterPresentation, 180);
+}
 function enterPresentation() {
   // start from currently active section
   var active = document.querySelector('.nav-item.active');
