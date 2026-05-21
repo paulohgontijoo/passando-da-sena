@@ -38,10 +38,11 @@ export default async function AdminUsuariosPage({ searchParams }: Props) {
     .from("profiles").select("nickname, role").eq("id", user.id).single()
   if (!profile || profile.role !== "admin") redirect("/dashboard")
 
-  const { data: usuarios } = await supabase
+  const { data: usuarios, error: usuariosErr } = await supabase
     .from("profiles")
     .select("id, nickname, nome, telefone, role, created_at")
     .order("created_at")
+  if (usuariosErr) console.error("[admin/usuarios] query error:", usuariosErr.message)
 
   return (
     <div className="min-h-screen bg-bg">
