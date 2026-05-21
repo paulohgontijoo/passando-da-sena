@@ -29,7 +29,7 @@ body { background: var(--bg); color: var(--text);
 .sidebar-logo { display: flex; align-items: center; gap: .75rem;
   padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); }
 .logo-icon  { font-size: 1.4rem; color: var(--accent); }
-.logo-title { font-size: 11px; font-weight: 700; letter-spacing: .12em;
+.logo-title { font-size: 10px; font-weight: 700; letter-spacing: .10em;
   color: var(--text); text-transform: uppercase; }
 .logo-sub   { font-size: 9px; letter-spacing: .1em; color: var(--accent); text-transform: uppercase; }
 nav { padding: .75rem 0; flex: 1; }
@@ -79,9 +79,21 @@ nav { padding: .75rem 0; flex: 1; }
 <div id="app">
 <aside id="sidebar">
   <div class="sidebar-logo">
-    <span class="logo-icon">&#9670;</span>
+    <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="ballG" cx="38%" cy="32%" r="68%">
+          <stop offset="0%" stop-color="#f5a623"/>
+          <stop offset="100%" stop-color="#e94560"/>
+        </radialGradient>
+      </defs>
+      <circle cx="19" cy="19" r="18" fill="url(#ballG)"/>
+      <circle cx="19" cy="19" r="18" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+      <ellipse cx="13" cy="12" rx="5" ry="4" fill="rgba(255,255,255,0.18)" transform="rotate(-20 13 12)"/>
+      <polyline points="6,25 10,20 14,23 18,15 22,19 27,12 32,14"
+        stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+    </svg>
     <div>
-      <div class="logo-title">Mega Sena</div>
+      <div class="logo-title">Passando da Sena</div>
       <div class="logo-sub">Analytics Lab</div>
     </div>
   </div>
@@ -95,7 +107,7 @@ nav { padding: .75rem 0; flex: 1; }
       <a href="#eda_06_evolucao_temporal" class="nav-item" data-section="eda_06_evolucao_temporal"><span class="nav-icon">&gt;</span>Evolucao Temporal</a>
       <a href="#eda_07_pares_coocorrencia" class="nav-item" data-section="eda_07_pares_coocorrencia"><span class="nav-icon">&gt;</span>Co-ocorrencia de Pares</a>
   </nav>
-  <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;"><span>Passando da Sena &copy; 2025</span><button id="theme-toggle" onclick="toggleTheme()" style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;color:var(--text-dim);font-size:13px;line-height:1.4;">&#9728;</button></div>
+  <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;"><span>Passando da Sena &copy; 2026</span><button id="theme-toggle" onclick="toggleTheme()" style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;color:var(--text-dim);font-size:13px;line-height:1.4;">&#9728;</button></div>
 </aside>
 <main id="content">
   <header class="page-header">
