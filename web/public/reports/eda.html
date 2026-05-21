@@ -72,6 +72,34 @@ nav { padding: .75rem 0; flex: 1; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+.section-header { position: relative; cursor: default; }
+.insight-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: rgba(233,69,96,.12); border: 1px solid rgba(233,69,96,.3);
+  color: var(--accent); font-size: 9px; font-weight: 700; font-family: monospace;
+  cursor: pointer; margin-left: .5rem; flex-shrink: 0; margin-top: 4px;
+  transition: background .15s;
+  user-select: none;
+}
+.insight-btn:hover { background: rgba(233,69,96,.25); }
+.insight-card {
+  display: none; position: absolute; left: 0; top: calc(100% + .4rem);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px; padding: .65rem .85rem;
+  font-size: 12px; color: var(--text); line-height: 1.6;
+  z-index: 50; min-width: 260px; max-width: 420px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  pointer-events: none;
+}
+.insight-card.open { display: block; }
+.insight-card strong { color: var(--accent); }
+.insight-card .stat-row { display: flex; gap: 1.2rem; margin-top: .35rem; }
+.insight-card .stat { text-align: center; }
+.insight-card .stat-val { font-size: 15px; font-weight: 700; color: var(--highlight); display: block; }
+.insight-card .stat-lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .06em; }
 </style>
 </head>
 <body>
@@ -114,13 +142,13 @@ nav { padding: .75rem 0; flex: 1; }
     <h1>Analise Exploratoria <span class="badge">EDA</span></h1>
     <p>7 analises &bull; gerado a partir dos exports do notebook</p>
   </header>
-  <section id="eda_01_frequencia_dezenas" class="section"><div class="section-header"><span class="section-num">01</span><div><h2 class="section-title">Frequencia Historica</h2><p class="section-subtitle">Contagem de aparicoes de cada dezena nos sorteios historicos. Em vermelho as acima da media.</p></div></div><iframe src="/exports/eda_01_frequencia_dezenas.html" class="chart-frame" height="420" frameborder="0" scrolling="no" title="Frequencia Historica"></iframe></section>
-    <section id="eda_02_frequencia_faixa" class="section"><div class="section-header"><span class="section-num">02</span><div><h2 class="section-title">Distribuicao por Faixa</h2><p class="section-subtitle">Agrupa as dezenas em faixas de 10 para verificar concentracao no intervalo 1-60.</p></div></div><iframe src="/exports/eda_02_frequencia_faixa.html" class="chart-frame" height="420" frameborder="0" scrolling="no" title="Distribuicao por Faixa"></iframe></section>
-    <section id="eda_03_pares_impares" class="section"><div class="section-header"><span class="section-num">03</span><div><h2 class="section-title">Paridade</h2><p class="section-subtitle">Proporcao de numeros pares e impares por sorteio. A combinacao 3P/3I e a mais comum historicamente.</p></div></div><iframe src="/exports/eda_03_pares_impares.html" class="chart-frame" height="420" frameborder="0" scrolling="no" title="Paridade"></iframe></section>
-    <section id="eda_04_soma_dezenas" class="section"><div class="section-header"><span class="section-num">04</span><div><h2 class="section-title">Distribuicao da Soma</h2><p class="section-subtitle">Soma dos 6 numeros sorteados. Distribuicao aproximadamente normal — sorteios com soma extrema sao raros.</p></div></div><iframe src="/exports/eda_04_soma_dezenas.html" class="chart-frame" height="420" frameborder="0" scrolling="no" title="Distribuicao da Soma"></iframe></section>
-    <section id="eda_05_gap_dezenas" class="section"><div class="section-header"><span class="section-num">05</span><div><h2 class="section-title">Gap entre Aparicoes</h2><p class="section-subtitle">Intervalo medio (em concursos) entre aparicoes consecutivas de cada dezena.</p></div></div><iframe src="/exports/eda_05_gap_dezenas.html" class="chart-frame" height="460" frameborder="0" scrolling="no" title="Gap entre Aparicoes"></iframe></section>
-    <section id="eda_06_evolucao_temporal" class="section"><div class="section-header"><span class="section-num">06</span><div><h2 class="section-title">Evolucao Temporal</h2><p class="section-subtitle">Frequencia em janela deslizante de 200 sorteios. Destaque para top-3 e bottom-3 por frequencia total.</p></div></div><iframe src="/exports/eda_06_evolucao_temporal.html" class="chart-frame" height="460" frameborder="0" scrolling="no" title="Evolucao Temporal"></iframe></section>
-    <section id="eda_07_pares_coocorrencia" class="section"><div class="section-header"><span class="section-num">07</span><div><h2 class="section-title">Co-ocorrencia de Pares</h2><p class="section-subtitle">Os 30 pares de dezenas que mais apareceram juntos no mesmo sorteio.</p></div></div><iframe src="/exports/eda_07_pares_coocorrencia.html" class="chart-frame" height="750" frameborder="0" scrolling="no" title="Co-ocorrencia de Pares"></iframe></section>
+  <section id="eda_01_frequencia_dezenas" class="section"><div class="section-header" onclick="toggleInsight('eda_01_frequencia_dezenas')"><span class="section-num">01</span><div><h2 class="section-title">Frequencia Historica</h2><p class="section-subtitle">Contagem de aparicoes de cada dezena nos sorteios historicos. Em vermelho as acima da media.</p></div><span class="insight-btn">i</span></div><div class="insight-card" id="insight-eda_01_frequencia_dezenas"><strong>Dezena 10</strong> lidera com <strong>353</strong> aparições. <strong>Dezena 26</strong> é a menos frequente: <strong>246x</strong>.<div class="stat-row"><div class="stat"><span class="stat-val">300x</span><span class="stat-lbl">Média geral</span></div><div class="stat"><span class="stat-val">30</span><span class="stat-lbl">Acima da média</span></div><div class="stat"><span class="stat-val">107</span><span class="stat-lbl">Maior diferença</span></div></div></div><iframe src="/exports/eda_01_frequencia_dezenas.html" class="chart-frame" height="420" frameborder="0" scrolling="no" title="Frequencia Historica"></iframe></section>
+    <section id="eda_02_frequencia_faixa" class="section"><div class="section-header" onclick="toggleInsight('eda_02_frequencia_faixa')"><span class="section-num">02</span><div><h2 class="section-title">Distribuicao por Faixa</h2><p class="section-subtitle">Agrupa as dezenas em faixas de 10 para verificar concentracao no intervalo 1-60.</p></div><span class="insight-btn">i</span></div><div class="insight-card" id="insight-eda_02_frequencia_faixa">Faixa <strong>31–40</strong> é a mais frequente (17.1%). Faixa <strong>21–30</strong> é a menos (16.2%). Distribuição quase uniforme — diferença máxima entre faixas é de apenas <strong>0.9 p.p.</strong><div class="stat-row"><div class="stat"><span class="stat-val">31–40</span><span class="stat-lbl">Mais freq.</span></div><div class="stat"><span class="stat-val">21–30</span><span class="stat-lbl">Menos freq.</span></div><div class="stat"><span class="stat-val">16.7%</span><span class="stat-lbl">Esperado uniform.</span></div></div></div><iframe src="/exports/eda_02_frequencia_faixa.html" class="chart-frame" height="420" frameborder="0" scrolling="no" title="Distribuicao por Faixa"></iframe></section>
+    <section id="eda_03_pares_impares" class="section"><div class="section-header" onclick="toggleInsight('eda_03_pares_impares')"><span class="section-num">03</span><div><h2 class="section-title">Paridade</h2><p class="section-subtitle">Proporcao de numeros pares e impares por sorteio. A combinacao 3P/3I e a mais comum historicamente.</p></div><span class="insight-btn">i</span></div><div class="insight-card" id="insight-eda_03_pares_impares"><strong>3 pares / 3 ímpares</strong> é a combinação mais comum: <strong>30.7%</strong> dos sorteios. Sorteios com todos pares ou todos ímpares são raros — ~1.3% cada.<div class="stat-row"><div class="stat"><span class="stat-val">30.7%</span><span class="stat-lbl">3P / 3I</span></div><div class="stat"><span class="stat-val">24.4%</span><span class="stat-lbl">4P / 2I</span></div><div class="stat"><span class="stat-val">24.1%</span><span class="stat-lbl">2P / 4I</span></div></div></div><iframe src="/exports/eda_03_pares_impares.html" class="chart-frame" height="420" frameborder="0" scrolling="no" title="Paridade"></iframe></section>
+    <section id="eda_04_soma_dezenas" class="section"><div class="section-header" onclick="toggleInsight('eda_04_soma_dezenas')"><span class="section-num">04</span><div><h2 class="section-title">Distribuicao da Soma</h2><p class="section-subtitle">Soma dos 6 numeros sorteados. Distribuicao aproximadamente normal — sorteios com soma extrema sao raros.</p></div><span class="insight-btn">i</span></div><div class="insight-card" id="insight-eda_04_soma_dezenas">A soma dos 6 números segue distribuição aproximadamente normal. <strong>90%</strong> dos sorteios têm soma entre <strong>118 e 248</strong>. Apostas fora desse intervalo são estatisticamente incomuns.<div class="stat-row"><div class="stat"><span class="stat-val">183</span><span class="stat-lbl">Média</span></div><div class="stat"><span class="stat-val">±40</span><span class="stat-lbl">Desvio padrão</span></div><div class="stat"><span class="stat-val">118–248</span><span class="stat-lbl">Intervalo 90%</span></div></div></div><iframe src="/exports/eda_04_soma_dezenas.html" class="chart-frame" height="420" frameborder="0" scrolling="no" title="Distribuicao da Soma"></iframe></section>
+    <section id="eda_05_gap_dezenas" class="section"><div class="section-header" onclick="toggleInsight('eda_05_gap_dezenas')"><span class="section-num">05</span><div><h2 class="section-title">Gap entre Aparicoes</h2><p class="section-subtitle">Intervalo medio (em concursos) entre aparicoes consecutivas de cada dezena.</p></div><span class="insight-btn">i</span></div><div class="insight-card" id="insight-eda_05_gap_dezenas">Com 60 dezenas e 6 sorteadas por concurso, cada dezena sai em média a cada <strong>~10 sorteios</strong>. Dezenas com gap atual muito acima disso estão "atrasadas" — mas lembre-se: cada sorteio é independente.</div><iframe src="/exports/eda_05_gap_dezenas.html" class="chart-frame" height="460" frameborder="0" scrolling="no" title="Gap entre Aparicoes"></iframe></section>
+    <section id="eda_06_evolucao_temporal" class="section"><div class="section-header" onclick="toggleInsight('eda_06_evolucao_temporal')"><span class="section-num">06</span><div><h2 class="section-title">Evolucao Temporal</h2><p class="section-subtitle">Frequencia em janela deslizante de 200 sorteios. Destaque para top-3 e bottom-3 por frequencia total.</p></div><span class="insight-btn">i</span></div><div class="insight-card" id="insight-eda_06_evolucao_temporal">Frequência calculada em janela deslizante de <strong>200 sorteios</strong>. Top-3 históricas: <strong>10, 53, 37</strong>. Bottom-3 históricas: <strong>26, 21, 55</strong>. Observe se o ranking de curto prazo diverge do histórico.</div><iframe src="/exports/eda_06_evolucao_temporal.html" class="chart-frame" height="460" frameborder="0" scrolling="no" title="Evolucao Temporal"></iframe></section>
+    <section id="eda_07_pares_coocorrencia" class="section"><div class="section-header" onclick="toggleInsight('eda_07_pares_coocorrencia')"><span class="section-num">07</span><div><h2 class="section-title">Co-ocorrencia de Pares</h2><p class="section-subtitle">Os 30 pares de dezenas que mais apareceram juntos no mesmo sorteio.</p></div><span class="insight-btn">i</span></div><div class="insight-card" id="insight-eda_07_pares_coocorrencia">Exibe os <strong>30 pares</strong> que mais apareceram juntos. Co-ocorrência esperada por acaso: ~<strong>30x</strong> em 3.002 sorteios. Pares muito acima disso podem indicar padrão — ou simplesmente que ambas as dezenas são individualmente frequentes.</div><iframe src="/exports/eda_07_pares_coocorrencia.html" class="chart-frame" height="750" frameborder="0" scrolling="no" title="Co-ocorrencia de Pares"></iframe></section>
 </main>
 </div>
 <script>
@@ -142,6 +170,18 @@ function toggleTheme() {
     if (btn) btn.textContent = saved === 'light' ? '☽' : '☀';
   });
 })();
+function toggleInsight(id) {
+  const card = document.getElementById('insight-' + id);
+  if (!card) return;
+  const isOpen = card.classList.contains('open');
+  document.querySelectorAll('.insight-card.open').forEach(c => c.classList.remove('open'));
+  if (!isOpen) card.classList.add('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.section-header')) {
+    document.querySelectorAll('.insight-card.open').forEach(c => c.classList.remove('open'));
+  }
+});
 const sections = document.querySelectorAll('.section');
 const navLinks = document.querySelectorAll('.nav-item');
 const observer = new IntersectionObserver(entries => {
