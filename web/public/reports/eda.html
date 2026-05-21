@@ -80,6 +80,12 @@ nav { padding: .75rem 0; flex: 1; }
 .bnav-item.active::before { transform: scaleX(1); }
 .bnav-num { font-family: monospace; font-size: 12px; font-weight: 700; }
 .bnav-label { font-size: 8px; letter-spacing: .05em; text-transform: uppercase; }
+#bnav-scroll {
+  flex: 1; display: flex; overflow-x: auto;
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+#bnav-scroll::-webkit-scrollbar { display: none; }
+.bnav-fixed { flex-shrink: 0; }
 #sidebar-overlay {
   display: none; position: fixed; inset: 0; z-index: 99;
   background: rgba(0,0,0,.55); backdrop-filter: blur(2px);
@@ -511,31 +517,11 @@ body.presentation #content { padding-top: 70px; }
 </main>
 </div>
 <nav id="bottom-nav">
-  <a href="#" class="bnav-item" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">
+  <a href="#" class="bnav-item bnav-fixed" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">
     <span class="bnav-num">&#8962;</span><span class="bnav-label">Topo</span>
   </a>
-  <a href="#eda_01_frequencia_dezenas" class="bnav-item nav-item" data-section="eda_01_frequencia_dezenas">
-    <span class="bnav-num">01</span><span class="bnav-label">Freq</span>
-  </a>
-  <a href="#eda_02_frequencia_faixa" class="bnav-item nav-item" data-section="eda_02_frequencia_faixa">
-    <span class="bnav-num">02</span><span class="bnav-label">Faixa</span>
-  </a>
-  <a href="#eda_03_pares_impares" class="bnav-item nav-item" data-section="eda_03_pares_impares">
-    <span class="bnav-num">03</span><span class="bnav-label">Par</span>
-  </a>
-  <a href="#eda_04_soma_dezenas" class="bnav-item nav-item" data-section="eda_04_soma_dezenas">
-    <span class="bnav-num">04</span><span class="bnav-label">Soma</span>
-  </a>
-  <a href="#eda_05_gap_dezenas" class="bnav-item nav-item" data-section="eda_05_gap_dezenas">
-    <span class="bnav-num">05</span><span class="bnav-label">Gap</span>
-  </a>
-  <a href="#eda_06_evolucao_temporal" class="bnav-item nav-item" data-section="eda_06_evolucao_temporal">
-    <span class="bnav-num">06</span><span class="bnav-label">Temp</span>
-  </a>
-  <a href="#eda_07_pares_coocorrencia" class="bnav-item nav-item" data-section="eda_07_pares_coocorrencia">
-    <span class="bnav-num">07</span><span class="bnav-label">Pares</span>
-  </a>
-  <a class="bnav-item" onclick="toggleSidebar()" style="cursor:pointer;">
+  <div id="bnav-scroll"></div>
+  <a class="bnav-item bnav-fixed" onclick="toggleSidebar()" style="cursor:pointer;">
     <span class="bnav-num">&#9776;</span><span class="bnav-label">Mais</span>
   </a>
 </nav>
@@ -820,6 +806,7 @@ const observer = new IntersectionObserver(entries => {
       const id = e.target.id;
       navLinks.forEach(a => a.classList.toggle('active', a.dataset.section === id));
       updateNavProgress(id);
+      bnavScrollToActive(id);
     }
   });
 }, { threshold: 0.2, rootMargin: '-5% 0px -60% 0px' });
@@ -829,6 +816,43 @@ updateNavProgress(_sectionOrder[0]);
 navLinks.forEach(a => a.addEventListener('click', () => {
   document.getElementById('sidebar').classList.remove('open');
 }));
+
+// ── Bottom nav dinamico ────────────────────────────────────────────────
+(function() {
+  var SHORT = {
+    'eda_01_frequencia_dezenas':'Freq',
+    'eda_02_frequencia_faixa':'Faixa',
+    'eda_03_pares_impares':'Par',
+    'eda_04_soma_dezenas':'Soma',
+    'eda_05_gap_dezenas':'Gap',
+    'eda_06_evolucao_temporal':'Temp',
+    'eda_07_pares_coocorrencia':'Pares',
+    'eda_08a_local_frequencia':'Loc.F',
+    'eda_08b_local_acumulo_premio':'Loc.A',
+    'eda_08c_local_heatmap':'Loc.H',
+    'eda_09a_ordem_boxplot':'Box',
+    'eda_09b_ordem_heatmap':'Heat',
+    'eda_09c_ordem_spearman':'Spear',
+    'eda_10a_correlacao_matrix':'Corr',
+    'eda_10b_soma_acumulado_ks':'K-S',
+    'eda_10c_chi2_paridade':'Chi2'
+  };
+  var sc = document.getElementById('bnav-scroll');
+  if (!sc) return;
+  sc.innerHTML = _sectionOrder.map(function(id, i) {
+    var n = String(i+1).padStart(2,'0');
+    return '<a href="#'+id+'" class="bnav-item nav-item" data-section="'+id+'">'
+         + '<span class="bnav-num">'+n+'</span>'
+         + '<span class="bnav-label">' + (SHORT[id]||n) + '</span></a>';
+  }).join('');
+})();
+
+function bnavScrollToActive(id) {
+  var el = document.querySelector('#bnav-scroll [data-section="'+id+'"]');
+  var sc = document.getElementById('bnav-scroll');
+  if (!el || !sc) return;
+  sc.scrollTo({left: el.offsetLeft - sc.offsetWidth/2 + el.offsetWidth/2, behavior:'smooth'});
+}
 
 if (window.innerWidth < 768) {
   if (document.getElementById('chart5')) {

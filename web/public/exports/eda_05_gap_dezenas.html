@@ -3902,13 +3902,31 @@ function _applyTheme(t) {
   var div = document.querySelector('.plotly-graph-div');
   if (div && window.Plotly) Plotly.relayout(div, update);
 }
+function _applyMobile() {
+  var div = document.querySelector('.plotly-graph-div');
+  if (!div || !window.Plotly) return;
+  Plotly.relayout(div, {
+    'legend.orientation': 'h',
+    'legend.x': 0,
+    'legend.y': -0.22,
+    'legend.yanchor': 'top',
+    'margin.r': 8,
+    'margin.t': 48
+  });
+}
 document.addEventListener('DOMContentLoaded', function() {
   var theme = 'dark';
   try { theme = localStorage.getItem('eda-theme') || 'dark'; } catch(e) {}
   _applyTheme(theme);
+  if (window.innerWidth < 768) _applyMobile();
+  window.dispatchEvent(new Event('resize'));
 });
 window.addEventListener('message', function(e) {
   if (e.data && e.data.type === 'set-theme') _applyTheme(e.data.theme);
+  if (e.data && e.data.type === 'resize-chart') {
+    var div = document.querySelector('.plotly-graph-div');
+    if (div && window.Plotly) Plotly.relayout(div, {height: e.data.height});
+  }
 });
 </script>
 </body>
