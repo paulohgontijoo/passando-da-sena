@@ -175,6 +175,30 @@ nav { padding: .75rem 0; flex: 1; }
   font-size: 10px; color: var(--text-dim); margin-top: .2rem; }
 .range-meta .range-years { font-weight: 700; color: var(--text); font-size: 11px; }
 .range-meta .range-count { color: var(--accent); font-size: 10px; }
+
+nav { position: relative; }
+#nav-track { position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  background: var(--border); pointer-events: none; }
+#nav-bar   { position: absolute; left: 0; top: 0; width: 2px;
+  background: linear-gradient(to bottom, var(--accent), var(--highlight));
+  transition: height .45s cubic-bezier(.4,0,.2,1); height: 0%;
+  pointer-events: none; border-radius: 0 0 2px 2px; }
+@keyframes navGlow {
+  0%,100% { background: var(--surface2); box-shadow: none; }
+  50%      { background: rgba(233,69,96,.08);
+             box-shadow: inset 2px 0 8px rgba(233,69,96,.15); }
+}
+.nav-item.active {
+  color: var(--text); background: var(--surface2);
+  border-left-color: var(--accent);
+  animation: navGlow 2.8s ease-in-out infinite;
+}
+.nav-icon-num {
+  font-size: 9px; font-weight: 700; color: var(--accent);
+  font-family: monospace; min-width: 18px; opacity: .7;
+  transition: opacity .15s;
+}
+.nav-item.active .nav-icon-num { opacity: 1; }
 </style>
 </head>
 <body>
@@ -235,14 +259,15 @@ nav { padding: .75rem 0; flex: 1; }
     <div class="bolao-tags" id="bolao-tags"></div>
   </div>
   <nav>
+    <div id="nav-track"></div><div id="nav-bar"></div>
     <div class="nav-label">Analise Exploratoria</div>
-    <a href="#eda_01_frequencia_dezenas" class="nav-item" data-section="eda_01_frequencia_dezenas"><span class="nav-icon">&bull;</span>Frequencia Historica</a>
-      <a href="#eda_02_frequencia_faixa" class="nav-item" data-section="eda_02_frequencia_faixa"><span class="nav-icon">&gt;</span>Distribuicao por Faixa</a>
-      <a href="#eda_03_pares_impares" class="nav-item" data-section="eda_03_pares_impares"><span class="nav-icon">&gt;</span>Paridade</a>
-      <a href="#eda_04_soma_dezenas" class="nav-item" data-section="eda_04_soma_dezenas"><span class="nav-icon">&gt;</span>Distribuicao da Soma</a>
-      <a href="#eda_05_gap_dezenas" class="nav-item" data-section="eda_05_gap_dezenas"><span class="nav-icon">&gt;</span>Gap entre Aparicoes</a>
-      <a href="#eda_06_evolucao_temporal" class="nav-item" data-section="eda_06_evolucao_temporal"><span class="nav-icon">&gt;</span>Evolucao Temporal</a>
-      <a href="#eda_07_pares_coocorrencia" class="nav-item" data-section="eda_07_pares_coocorrencia"><span class="nav-icon">&gt;</span>Co-ocorrencia de Pares</a>
+    <a href="#eda_01_frequencia_dezenas" class="nav-item" data-section="eda_01_frequencia_dezenas"><span class="nav-icon-num">01</span>Frequencia Historica</a>
+      <a href="#eda_02_frequencia_faixa" class="nav-item" data-section="eda_02_frequencia_faixa"><span class="nav-icon-num">02</span>Distribuicao por Faixa</a>
+      <a href="#eda_03_pares_impares" class="nav-item" data-section="eda_03_pares_impares"><span class="nav-icon-num">03</span>Paridade</a>
+      <a href="#eda_04_soma_dezenas" class="nav-item" data-section="eda_04_soma_dezenas"><span class="nav-icon-num">04</span>Distribuicao da Soma</a>
+      <a href="#eda_05_gap_dezenas" class="nav-item" data-section="eda_05_gap_dezenas"><span class="nav-icon-num">05</span>Gap entre Aparicoes</a>
+      <a href="#eda_06_evolucao_temporal" class="nav-item" data-section="eda_06_evolucao_temporal"><span class="nav-icon-num">06</span>Evolucao Temporal</a>
+      <a href="#eda_07_pares_coocorrencia" class="nav-item" data-section="eda_07_pares_coocorrencia"><span class="nav-icon-num">07</span>Co-ocorrencia de Pares</a>
   </nav>
   <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;"><span>Passando da Sena &copy; 2026</span><button id="theme-toggle" onclick="toggleTheme()" style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;color:var(--text-dim);font-size:13px;line-height:1.4;">&#9728;</button></div>
 </aside>
@@ -408,11 +433,24 @@ function toggleInsight(id) {
 
 const sections = document.querySelectorAll('.section');
 const navLinks = document.querySelectorAll('.nav-item');
+const _sectionOrder = [
+  'eda_01_frequencia_dezenas','eda_02_frequencia_faixa','eda_03_pares_impares',
+  'eda_04_soma_dezenas','eda_05_gap_dezenas','eda_06_evolucao_temporal',
+  'eda_07_pares_coocorrencia'
+];
+function updateNavProgress(activeId) {
+  const idx = _sectionOrder.indexOf(activeId);
+  if (idx < 0) return;
+  const pct = idx === 0 ? 0 : (idx / (_sectionOrder.length - 1)) * 100;
+  const bar = document.getElementById('nav-bar');
+  if (bar) bar.style.height = pct + '%';
+}
 const observer = new IntersectionObserver(entries => {
   entries.forEach(e => {
     if (e.isIntersecting) {
       const id = e.target.id;
       navLinks.forEach(a => a.classList.toggle('active', a.dataset.section === id));
+      updateNavProgress(id);
     }
   });
 }, { threshold: 0.2, rootMargin: '-5% 0px -60% 0px' });
