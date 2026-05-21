@@ -99,6 +99,30 @@ nav { padding: .75rem 0; flex: 1; }
 .insight-card .stat { text-align: center; }
 .insight-card .stat-val { font-size: 15px; font-weight: 700; color: var(--highlight); display: block; }
 .insight-card .stat-lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .06em; }
+
+.bolao-section { padding: .5rem 1rem .75rem; border-bottom: 1px solid var(--border); }
+.bolao-input-wrap { display: flex; gap: .4rem; margin-top: .4rem; }
+.bolao-input {
+  flex: 1; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 5px 8px; font-size: 12px; color: var(--text);
+  outline: none; min-width: 0;
+}
+.bolao-input::placeholder { color: var(--text-dim); }
+.bolao-input:focus { border-color: var(--accent); }
+.bolao-btn {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 4px 8px; cursor: pointer;
+  color: var(--text-dim); font-size: 11px; white-space: nowrap;
+  transition: all .15s;
+}
+.bolao-btn:hover { border-color: var(--accent); color: var(--accent); }
+.bolao-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.bolao-tags { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .4rem; min-height: 0; }
+.bolao-tag {
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2);
+  border-radius: 3px; padding: 1px 6px; font-size: 11px; font-weight: 700;
+  color: #fff; font-family: monospace;
+}
 </style>
 </head>
 <body>
@@ -123,6 +147,16 @@ nav { padding: .75rem 0; flex: 1; }
       <div class="logo-title">Passando da Sena</div>
       <div class="logo-sub">Analytics Lab</div>
     </div>
+  </div>
+  <div class="bolao-section">
+    <div class="nav-label" style="padding:.5rem 0 .3rem;">Dezenas do Bolao</div>
+    <div class="bolao-input-wrap">
+      <input class="bolao-input" id="bolao-input" type="text"
+             placeholder="ex: 5 10 26 33 41 52" maxlength="24"
+             onkeydown="if(event.key==='Enter') applyBolao()" />
+      <button class="bolao-btn" id="bolao-btn" onclick="applyBolao()">&#9650;</button>
+    </div>
+    <div class="bolao-tags" id="bolao-tags"></div>
   </div>
   <nav>
     <div class="nav-label">Analise Exploratoria</div>
@@ -151,6 +185,29 @@ nav { padding: .75rem 0; flex: 1; }
 </main>
 </div>
 <script>
+function applyBolao() {
+  var val = document.getElementById('bolao-input').value;
+  var nums = val.trim().split(/[\s,;]+/).map(Number)
+               .filter(function(n){ return n >= 1 && n <= 60; });
+  var tags = document.getElementById('bolao-tags');
+  var btn  = document.getElementById('bolao-btn');
+  if (nums.length === 0) { clearBolao(); return; }
+  tags.innerHTML = nums.map(function(n){
+    return '<span class="bolao-tag">' + (n < 10 ? '0' : '') + n + '</span>';
+  }).join('');
+  btn.classList.add('active');
+  document.querySelectorAll('.chart-frame').forEach(function(iframe) {
+    try { iframe.contentWindow.postMessage({type:'highlight-dezenas', dezenas:nums}, '*'); } catch(e) {}
+  });
+}
+function clearBolao() {
+  document.getElementById('bolao-input').value = '';
+  document.getElementById('bolao-tags').innerHTML = '';
+  document.getElementById('bolao-btn').classList.remove('active');
+  document.querySelectorAll('.chart-frame').forEach(function(iframe) {
+    try { iframe.contentWindow.postMessage({type:'highlight-dezenas', dezenas:[]}, '*'); } catch(e) {}
+  });
+}
 function toggleTheme() {
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
   const next = isLight ? 'dark' : 'light';

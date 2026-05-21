@@ -3907,8 +3907,28 @@ document.addEventListener('DOMContentLoaded', function() {
   try { theme = localStorage.getItem('eda-theme') || 'dark'; } catch(e) {}
   _applyTheme(theme);
 });
+function _highlightDezenas(selected) {
+  var div = document.querySelector('.plotly-graph-div');
+  if (!div || !window.Plotly) return;
+  var trace = div.data && div.data[0];
+  if (!trace || trace.type !== 'bar' || !trace.x) return;
+  if (!div._origColors) {
+    var c = trace.marker && trace.marker.color;
+    div._origColors = Array.isArray(c) ? c.slice() : Array(trace.x.length).fill(c || '#8892b0');
+  }
+  if (!selected || selected.length === 0) {
+    Plotly.restyle(div, {'marker.color': [div._origColors.slice()]}, [0]);
+    return;
+  }
+  var sel = new Set(selected.map(Number));
+  var colors = trace.x.map(function(x, i) {
+    return sel.has(Number(x)) ? '#ffffff' : div._origColors[i];
+  });
+  Plotly.restyle(div, {'marker.color': [colors]}, [0]);
+}
 window.addEventListener('message', function(e) {
   if (e.data && e.data.type === 'set-theme') _applyTheme(e.data.theme);
+  if (e.data && e.data.type === 'highlight-dezenas') _highlightDezenas(e.data.dezenas);
 });
 </script>
 </body>
