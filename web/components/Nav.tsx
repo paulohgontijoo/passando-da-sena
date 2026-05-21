@@ -20,6 +20,9 @@ export async function Nav() {
 
   const isMod = profile?.role === 'admin' || profile?.role === 'moderador'
 
+  // Fallback: derivar nickname do email sintetico (nickname@bolao.local)
+  const displayName = profile?.nickname ?? user?.email?.split('@')[0] ?? '—'
+
   return (
     <nav className="bg-primary border-b border-muted/20 px-6 py-3 flex items-center justify-between">
       <div className="flex items-center gap-6">
@@ -37,12 +40,14 @@ export async function Nav() {
         </div>
       </div>
 
-      {profile && (
+      {user && (
         <div className="flex items-center gap-3">
-          <span className="text-brand text-sm font-medium">{profile.nickname}</span>
-          <span className="text-xs px-1.5 py-0.5 border border-muted/30 rounded text-muted">
-            {roleLabel[profile.role as UserRole]}
-          </span>
+          <span className="text-brand text-sm font-medium">{displayName}</span>
+          {profile?.role && (
+            <span className="text-xs px-1.5 py-0.5 border border-muted/30 rounded text-muted">
+              {roleLabel[profile.role as UserRole]}
+            </span>
+          )}
           <form action={logout}>
             <button
               type="submit"

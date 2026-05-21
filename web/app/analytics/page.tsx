@@ -1,9 +1,14 @@
+import { Nav } from '@/components/Nav'
+
 export default function AnalyticsPage() {
   return (
-    <iframe
-      src="/reports/eda.html"
-      title="Analise Exploratoria — Mega Sena"
-      style={{ width: '100%', height: '100vh', border: 'none', display: 'block' }}
-    />
+    <div className="flex flex-col h-screen">
+      <Nav />
+      <iframe
+        src="/reports/eda.html"
+        title="Análise Exploratória — Mega Sena"
+        className="flex-1 w-full border-0"
+      />
+    </div>
   )
 }

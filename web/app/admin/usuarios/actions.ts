@@ -10,18 +10,15 @@ async function assertAdmin() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
+    .from('profiles').select('role').eq('id', user.id).single()
   if (!profile || !['admin', 'moderador'].includes(profile.role)) {
     throw new Error('Acesso negado')
   }
-  return user
+  return { user, supabase }
 }
 
 export async function criarUsuario(formData: FormData) {
-  await assertAdmin()
+  const { } = await assertAdmin()
   const admin = createAdminClient()
 
   const nickname = (formData.get('nickname') as string).trim()
@@ -42,15 +39,48 @@ export async function criarUsuario(formData: FormData) {
   revalidatePath('/admin/usuarios')
 }
 
-export async function alterarRole(userId: string, novaRole: string) {
-  await assertAdmin()
-  const supabase = await createClient()
+export async function editarUsuario(userId: string, formData: FormData) {
+  const { supabase } = await assertAdmin()
+  const admin = createAdminClient()
 
-  const { error } = await supabase
+  const nickname = (formData.get('nickname') as string).trim()
+  const telefone = (formData.get('telefone') as string).trim()
+
+  if (!nickname || !telefone) throw new Error('Campos obrigatorios')
+
+  // Atualiza Auth (email sintetico + senha)
+  const { error: authErr } = await admin.auth.admin.updateUserById(userId, {
+    email: `${nickname}@bolao.local`,
+    password: telefone,
+    email_confirm: true,
+    user_metadata: { nickname, telefone },
+  })
+  if (authErr) throw new Error(authErr.message)
+
+  // Atualiza profiles
+  const { error: profileErr } = await supabase
     .from('profiles')
-    .update({ role: novaRole })
+    .update({ nickname, telefone })
     .eq('id', userId)
+  if (profileErr) throw new Error(profileErr.message)
 
+  revalidatePath('/admin/usuarios')
+  redirect('/admin/usuarios')
+}
+
+export async function excluirUsuario(userId: string) {
+  const { user } = await assertAdmin()
+  if (userId === user.id) throw new Error('Nao e possivel excluir sua propria conta')
+
+  const admin = createAdminClient()
+  const { error } = await admin.auth.admin.deleteUser(userId)
+  if (error) throw new Error(error.message)
+  revalidatePath('/admin/usuarios')
+}
+
+export async function alterarRole(userId: string, novaRole: string) {
+  const { supabase } = await assertAdmin()
+  const { error } = await supabase.from('profiles').update({ role: novaRole }).eq('id', userId)
   if (error) throw new Error(error.message)
   revalidatePath('/admin/usuarios')
 }

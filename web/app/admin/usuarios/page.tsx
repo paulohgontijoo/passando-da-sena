@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
 import { Nav } from '@/components/Nav'
-import { criarUsuario, alterarRole } from './actions'
+import { criarUsuario, excluirUsuario, alterarRole } from './actions'
 import type { UserRole } from '@/types/database'
 
 const roleLabel: Record<UserRole, string> = {
@@ -16,17 +17,15 @@ export default async function AdminUsuariosPage() {
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('nickname, role')
-    .eq('id', user.id)
-    .single()
-
+    .from('profiles').select('nickname, role').eq('id', user.id).single()
   if (!profile || !['admin', 'moderador'].includes(profile.role)) redirect('/dashboard')
 
   const { data: usuarios } = await supabase
     .from('profiles')
     .select('id, nickname, telefone, role, created_at')
     .order('created_at')
+
+  const isAdmin = profile.role === 'admin'
 
   return (
     <div className="min-h-screen bg-bg">
@@ -35,6 +34,7 @@ export default async function AdminUsuariosPage() {
       <main className="max-w-4xl mx-auto p-6 space-y-6">
         <h1 className="text-primary text-2xl font-bold">Usuários</h1>
 
+        {/* Criar usuario */}
         <div className="bg-surface rounded-lg p-6">
           <h2 className="text-brand font-semibold mb-4">Novo Usuário</h2>
           <form action={criarUsuario} className="flex flex-wrap gap-3 items-end">
@@ -79,6 +79,7 @@ export default async function AdminUsuariosPage() {
           </form>
         </div>
 
+        {/* Lista */}
         <div className="bg-surface rounded-lg p-6">
           <h2 className="text-brand font-semibold mb-4">
             Cadastrados
@@ -86,41 +87,75 @@ export default async function AdminUsuariosPage() {
           </h2>
 
           <div className="space-y-2">
-            {(usuarios ?? []).map((u) => (
-              <div key={u.id} className="flex items-center justify-between bg-primary rounded px-4 py-3">
-                <div className="flex items-center gap-4">
-                  <span className="text-brand text-sm font-medium w-28 truncate">{u.nickname}</span>
-                  <span className="text-muted text-xs font-mono">{u.telefone}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    u.role === 'admin'
-                      ? 'bg-accent/20 text-accent'
-                      : u.role === 'moderador'
-                      ? 'bg-highlight/20 text-highlight'
-                      : 'bg-muted/20 text-muted'
-                  }`}>
-                    {roleLabel[u.role as UserRole]}
-                  </span>
-                  {profile.role === 'admin' && u.id !== user.id && (
-                    <form action={alterarRoleAction.bind(null, u.id)}>
-                      <select
-                        name="role"
-                        defaultValue={u.role}
-                        className="bg-primary border border-muted/20 rounded px-2 py-1 text-muted text-xs focus:outline-none"
+            {(usuarios ?? []).map((u) => {
+              const isSelf = u.id === user.id
+              return (
+                <div key={u.id} className="flex items-center justify-between bg-primary rounded px-4 py-3">
+                  <div className="flex items-center gap-4 min-w-0">
+                    <span className="text-brand text-sm font-medium w-28 truncate">
+                      {u.nickname ?? <span className="text-muted italic">sem nickname</span>}
+                    </span>
+                    <span className="text-muted text-xs font-mono hidden sm:block">{u.telefone}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
+                      u.role === 'admin'
+                        ? 'bg-accent/20 text-accent'
+                        : u.role === 'moderador'
+                        ? 'bg-highlight/20 text-highlight'
+                        : 'bg-muted/20 text-muted'
+                    }`}>
+                      {roleLabel[u.role as UserRole]}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {/* Alterar role (apenas admin em outros usuarios) */}
+                    {isAdmin && !isSelf && (
+                      <form action={alterarRoleAction.bind(null, u.id)} className="flex items-center gap-1">
+                        <select
+                          name="role"
+                          defaultValue={u.role}
+                          className="bg-primary border border-muted/20 rounded px-2 py-1 text-muted text-xs focus:outline-none"
+                        >
+                          <option value="apostador">Apostador</option>
+                          <option value="moderador">Moderador</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                        <button type="submit" className="text-xs text-muted hover:text-brand cursor-pointer">
+                          ✓
+                        </button>
+                      </form>
+                    )}
+
+                    {/* Editar */}
+                    {!isSelf && (
+                      <Link
+                        href={`/admin/usuarios/${u.id}/editar`}
+                        className="text-xs text-muted hover:text-brand transition-colors px-2 py-1 border border-muted/20 rounded"
                       >
-                        <option value="apostador">Apostador</option>
-                        <option value="moderador">Moderador</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                      <button type="submit" className="text-xs text-muted hover:text-brand ml-1 cursor-pointer">
-                        Salvar
-                      </button>
-                    </form>
-                  )}
+                        Editar
+                      </Link>
+                    )}
+
+                    {/* Excluir (apenas admin em outros usuarios) */}
+                    {isAdmin && !isSelf && (
+                      <form action={excluirUsuarioAction.bind(null, u.id)}>
+                        <button
+                          type="submit"
+                          className="text-xs text-muted hover:text-accent cursor-pointer px-2 py-1 border border-muted/20 rounded transition-colors"
+                          onClick={(e) => {
+                            if (!confirm(`Excluir ${u.nickname ?? u.id}? Esta ação não pode ser desfeita.`)) {
+                              e.preventDefault()
+                            }
+                          }}
+                        >
+                          Excluir
+                        </button>
+                      </form>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </main>
@@ -132,4 +167,9 @@ async function alterarRoleAction(userId: string, formData: FormData) {
   'use server'
   const role = formData.get('role') as string
   await alterarRole(userId, role)
+}
+
+async function excluirUsuarioAction(userId: string, _formData: FormData) {
+  'use server'
+  await excluirUsuario(userId)
 }
