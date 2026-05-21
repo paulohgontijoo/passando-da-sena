@@ -4,6 +4,8 @@ import { createClient } from "@/utils/supabase/server"
 import { Nav } from "@/components/Nav"
 import type { CicloStatus } from "@/types/database"
 
+export const dynamic = "force-dynamic"
+
 const statusLabel: Record<CicloStatus, string> = {
   rascunho: "Rascunho",
   aberto: "Aberto",

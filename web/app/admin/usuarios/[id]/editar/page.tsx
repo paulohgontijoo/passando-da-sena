@@ -5,6 +5,8 @@ import { Nav } from "@/components/Nav"
 import { editarUsuario } from "@/app/admin/usuarios/actions"
 import TelefoneInput from "@/components/TelefoneInput"
 
+export const dynamic = "force-dynamic"
+
 type Params = { params: Promise<{ id: string }> }
 
 export default async function EditarUsuarioPage({ params }: Params) {

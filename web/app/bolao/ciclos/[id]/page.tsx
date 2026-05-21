@@ -12,6 +12,8 @@ import {
 } from '@/app/bolao/actions'
 import type { CicloStatus, ParticipacaoStatus } from '@/types/database'
 
+export const dynamic = "force-dynamic"
+
 const statusCicloLabel: Record<CicloStatus, string> = {
   rascunho: 'Rascunho',
   aberto: 'Aberto',

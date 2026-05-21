@@ -2,6 +2,8 @@ import { login, signup } from './actions'
 import Link from 'next/link'
 import TelefoneInput from '@/components/TelefoneInput'
 
+export const dynamic = "force-dynamic"
+
 type Props = {
   searchParams: Promise<{ error?: string; success?: string; modo?: string }>
 }

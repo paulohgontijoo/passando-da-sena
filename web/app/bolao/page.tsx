@@ -5,6 +5,8 @@ import { Nav } from "@/components/Nav"
 import { criarBolao } from "./actions"
 import BuscaGrupos from "@/components/BuscaGrupos"
 
+export const dynamic = "force-dynamic"
+
 function fmt(v: number) {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
 }

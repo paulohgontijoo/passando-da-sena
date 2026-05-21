@@ -5,6 +5,8 @@ import { Nav } from '@/components/Nav'
 import { adicionarMembro, alterarRoleMembro, removerMembro, aprovarSolicitacao, rejeitarSolicitacao } from '@/app/bolao/actions'
 import type { CicloStatus } from '@/types/database'
 
+export const dynamic = "force-dynamic"
+
 const statusLabel: Record<CicloStatus, string> = {
   rascunho: 'Rascunho',
   aberto: 'Aberto',

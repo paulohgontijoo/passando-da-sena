@@ -7,6 +7,8 @@ import { ExcluirButton } from "@/components/ExcluirButton"
 import TelefoneInput from "@/components/TelefoneInput"
 import type { UserRole } from "@/types/database"
 
+export const dynamic = "force-dynamic"
+
 const roleLabel: Record<UserRole, string> = {
   admin: "Admin",
   moderador: "Moderador",

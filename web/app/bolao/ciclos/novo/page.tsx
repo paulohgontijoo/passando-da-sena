@@ -3,6 +3,8 @@ import { createClient } from '@/utils/supabase/server'
 import { Nav } from '@/components/Nav'
 import { NovoCicloForm } from './NovoCicloForm'
 
+export const dynamic = "force-dynamic"
+
 export default async function NovoCicloPage({ searchParams }: { searchParams: Promise<{ bolaoId?: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -40,7 +42,7 @@ export default async function NovoCicloPage({ searchParams }: { searchParams: Pr
     <div className="min-h-screen bg-bg">
       <Nav />
       <main className="max-w-2xl mx-auto p-6">
-        <h1 className="text-primary text-2xl font-bold mb-6">Novo Ciclo</h1>
+        <h1 className="text-primary text-2xl font-bold mb-6">Novo Concurso</h1>
         <NovoCicloForm bolaoId={bolao.id} bolaoNome={bolao.nome} topNumeros={topNumeros} />
       </main>
     </div>

@@ -4,6 +4,8 @@ import { createClient } from '@/utils/supabase/server'
 import { Nav } from '@/components/Nav'
 import { editarCiclo, adicionarAposta, excluirAposta, atualizarStatusCiclo } from '@/app/bolao/actions'
 
+export const dynamic = "force-dynamic"
+
 const LOTERIAS = [
   { value: 'megasena', label: 'Mega-Sena' },
   { value: 'quina', label: 'Quina' },
