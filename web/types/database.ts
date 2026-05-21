@@ -1,4 +1,5 @@
-export type UserRole = 'admin' | 'moderador' | 'apostador'
+export type UserRole = 'admin' | 'apostador'
+export type BolaoMembroRole = 'moderador' | 'apostador'
 export type CicloStatus = 'rascunho' | 'aberto' | 'fechado' | 'sorteado'
 export type ParticipacaoStatus = 'pendente' | 'aprovado' | 'rejeitado'
 

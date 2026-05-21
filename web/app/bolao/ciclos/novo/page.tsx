@@ -3,7 +3,7 @@ import { createClient } from '@/utils/supabase/server'
 import { Nav } from '@/components/Nav'
 import { NovoCicloForm } from './NovoCicloForm'
 
-export default async function NovoCicloPage() {
+export default async function NovoCicloPage({ searchParams }: { searchParams: Promise<{ bolaoId?: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -16,14 +16,17 @@ export default async function NovoCicloPage() {
 
   if (!profile || !['admin', 'moderador'].includes(profile.role)) redirect('/dashboard')
 
-  // Bolao ativo mais recente
-  const { data: bolao } = await supabase
-    .from('boloes')
-    .select('id, nome')
-    .eq('ativo', true)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single()
+  // Bolão: usa bolaoId do searchParam se fornecido, senão pega o ativo mais recente
+  const params = await searchParams
+  const bolaoIdParam = params.bolaoId ? Number(params.bolaoId) : null
+
+  let bolaoQuery = supabase.from('boloes').select('id, nome')
+  if (bolaoIdParam) {
+    bolaoQuery = bolaoQuery.eq('id', bolaoIdParam)
+  } else {
+    bolaoQuery = bolaoQuery.eq('ativo', true).order('created_at', { ascending: false }).limit(1)
+  }
+  const { data: bolao } = await bolaoQuery.single()
 
   if (!bolao) redirect('/bolao')
 

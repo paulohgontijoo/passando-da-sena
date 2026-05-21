@@ -6,8 +6,7 @@ import type { UserRole } from '@/types/database'
 
 const roleLabel: Record<UserRole, string> = {
   admin: 'Admin',
-  moderador: 'Mod',
-  apostador: 'Apostador',
+  apostador: '',  // apostador nao exibe badge de role
 }
 
 export async function Nav() {
@@ -18,7 +17,7 @@ export async function Nav() {
     ? await supabase.from('profiles').select('nickname, role').eq('id', user.id).single()
     : { data: null }
 
-  const isMod = profile?.role === 'admin' || profile?.role === 'moderador'
+  const isAdmin = profile?.role === 'admin'
 
   // Fallback: derivar nickname do email sintetico (nickname@bolao.local)
   const displayName = profile?.nickname ?? user?.email?.split('@')[0] ?? '—'
@@ -27,25 +26,26 @@ export async function Nav() {
     <nav className="bg-primary border-b border-muted/20 px-6 py-3 flex items-center justify-between">
       <div className="flex items-center gap-6">
         <Link
-          href="/dashboard"
+          href="/"
           className="text-brand font-bold text-lg hover:text-accent transition-colors"
         >
           Passando da Sena
         </Link>
         <div className="flex gap-4">
+          <NavLink href="/">Home</NavLink>
           <NavLink href="/dashboard">Dashboard</NavLink>
-          <NavLink href="/bolao">Bolao</NavLink>
+          <NavLink href="/bolao">Grupos</NavLink>
           <NavLink href="/analytics">Analytics</NavLink>
-          {isMod && <NavLink href="/admin/usuarios">Usuarios</NavLink>}
+          {isAdmin && <NavLink href="/admin/usuarios">Usuarios</NavLink>}
         </div>
       </div>
 
       {user && (
         <div className="flex items-center gap-3">
           <span className="text-brand text-sm font-medium">{displayName}</span>
-          {profile?.role && (
-            <span className="text-xs px-1.5 py-0.5 border border-muted/30 rounded text-muted">
-              {roleLabel[profile.role as UserRole]}
+          {profile?.role === 'admin' && (
+            <span className="text-xs px-1.5 py-0.5 border border-accent/40 rounded text-accent">
+              Admin
             </span>
           )}
           <form action={logout}>

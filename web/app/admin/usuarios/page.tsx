@@ -3,11 +3,11 @@ import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
 import { Nav } from '@/components/Nav'
 import { criarUsuario, excluirUsuario, alterarRole } from './actions'
+import { ExcluirButton } from '@/components/ExcluirButton'
 import type { UserRole } from '@/types/database'
 
 const roleLabel: Record<UserRole, string> = {
   admin: 'Admin',
-  moderador: 'Moderador',
   apostador: 'Apostador',
 }
 
@@ -18,14 +18,14 @@ export default async function AdminUsuariosPage() {
 
   const { data: profile } = await supabase
     .from('profiles').select('nickname, role').eq('id', user.id).single()
-  if (!profile || !['admin', 'moderador'].includes(profile.role)) redirect('/dashboard')
+  if (!profile || profile.role !== 'admin') redirect('/dashboard')
 
   const { data: usuarios } = await supabase
     .from('profiles')
     .select('id, nickname, telefone, role, created_at')
     .order('created_at')
 
-  const isAdmin = profile.role === 'admin'
+  const isAdmin = profile?.role === 'admin'
 
   return (
     <div className="min-h-screen bg-bg">
@@ -138,19 +138,7 @@ export default async function AdminUsuariosPage() {
 
                     {/* Excluir (apenas admin em outros usuarios) */}
                     {isAdmin && !isSelf && (
-                      <form action={excluirUsuarioAction.bind(null, u.id)}>
-                        <button
-                          type="submit"
-                          className="text-xs text-muted hover:text-accent cursor-pointer px-2 py-1 border border-muted/20 rounded transition-colors"
-                          onClick={(e) => {
-                            if (!confirm(`Excluir ${u.nickname ?? u.id}? Esta ação não pode ser desfeita.`)) {
-                              e.preventDefault()
-                            }
-                          }}
-                        >
-                          Excluir
-                        </button>
-                      </form>
+                      <ExcluirButton userId={u.id} nickname={u.nickname ?? u.id} />
                     )}
                   </div>
                 </div>
@@ -169,7 +157,4 @@ async function alterarRoleAction(userId: string, formData: FormData) {
   await alterarRole(userId, role)
 }
 
-async function excluirUsuarioAction(userId: string, _formData: FormData) {
-  'use server'
-  await excluirUsuario(userId)
-}
+
