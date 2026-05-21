@@ -1,14 +1,21 @@
-version: "1.0"
+version: "1.1"
 project: passando-da-sena
 description: >
   Contrato de dados do Passando da Sena Analytics.
   Fonte de verdade para setup do banco Supabase (Postgres).
-  O script python/db/bootstrap.py le este arquivo e aplica o schema de forma idempotente.
+  O script python/db/bootstrap.py le este arquivo e aplica o schema de forma idempotente (novas instalacoes).
+  Para migracoes em bancos existentes: python/db/migrate.py + data/migrations/*.sql
 
 enums:
   user_role:
     schema: public
     values: [admin, moderador, apostador]
+  ciclo_status:
+    schema: public
+    values: [rascunho, aberto, fechado, sorteado]
+  participacao_status:
+    schema: public
+    values: [pendente, aprovado, rejeitado]
 
 tables:
 
@@ -60,19 +67,23 @@ tables:
 
   profiles:
     schema: public
-    description: Perfis de usuarios espelhados do Supabase Auth. Criados via trigger.
+    description: >
+      Perfis de usuarios espelhados do Supabase Auth. Criados via trigger on_auth_user_created.
+      Auth usa email sintetico (nickname@bolao.local) e telefone como senha — invisivel ao usuario.
     columns:
       id:
         type: uuid
         primary_key: true
         references: "auth.users(id)"
         on_delete: CASCADE
-      nome:
+      nickname:
         type: text
         not_null: true
-      email:
+        unique: true
+      telefone:
         type: text
         not_null: true
+        unique: true
       role:
         type: user_role
         not_null: true
@@ -80,17 +91,16 @@ tables:
       created_at:
         type: timestamptz
         default: "now()"
+    indexes:
+      - name: idx_profiles_nickname
+        columns: [nickname]
     rls:
       enabled: true
       policies:
-        - name: profiles_select_own
+        - name: profiles_select_authenticated
           operation: SELECT
           role: authenticated
-          using: "auth.uid() = id"
-        - name: profiles_select_admin
-          operation: SELECT
-          role: authenticated
-          using: "EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')"
+          using: "true"
         - name: profiles_update_own
           operation: UPDATE
           role: authenticated
@@ -99,21 +109,20 @@ tables:
 
   boloes:
     schema: public
-    description: Cada rodada de apostas coletiva do grupo.
+    description: Entidade recorrente do grupo de apostas. Cada concurso jogado e um ciclo.
     columns:
       id:
         type: serial
         primary_key: true
-      concurso:
-        type: integer
+      nome:
+        type: text
         not_null: true
-        references: "sorteios(concurso)"
-        on_delete: RESTRICT
       descricao:
         type: text
-      valor_cota:
-        type: "numeric(10,2)"
+      ativo:
+        type: boolean
         not_null: true
+        default: "true"
       criado_por:
         type: uuid
         not_null: true
@@ -122,9 +131,6 @@ tables:
       created_at:
         type: timestamptz
         default: "now()"
-    indexes:
-      - name: idx_boloes_concurso
-        columns: [concurso]
     rls:
       enabled: true
       policies:
@@ -141,9 +147,11 @@ tables:
           role: authenticated
           using: "EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'moderador'))"
 
-  participacoes:
+  ciclos:
     schema: public
-    description: Relacao entre apostadores e boloes - cotas e pagamentos.
+    description: >
+      Rodada do bolao — um concurso especifico. valor_cota e automaticamente recalculado
+      via trigger sempre que participacoes aprovadas mudam ou valor_total_jogado e atualizado.
     columns:
       id:
         type: serial
@@ -153,67 +161,70 @@ tables:
         not_null: true
         references: "boloes(id)"
         on_delete: CASCADE
-      usuario_id:
+      concurso_nr:
+        type: integer
+        not_null: true
+      status:
+        type: ciclo_status
+        not_null: true
+        default: "'rascunho'"
+      valor_total_jogado:
+        type: "numeric(10,2)"
+        not_null: true
+        default: "0"
+      valor_cota:
+        type: "numeric(10,2)"
+        not_null: true
+        default: "0"
+        description: "Calculado automaticamente por trigger: valor_total_jogado / sum(num_cotas aprovadas)"
+      premio_obtido:
+        type: "numeric(10,2)"
+      criado_por:
         type: uuid
         not_null: true
         references: "profiles(id)"
         on_delete: RESTRICT
-      num_cotas:
-        type: integer
-        not_null: true
-        default: "1"
-        check: "num_cotas > 0"
-      valor_pago:
-        type: "numeric(10,2)"
-        not_null: true
-        default: "0.00"
-      pago:
-        type: boolean
-        not_null: true
-        default: "false"
-      updated_at:
+      created_at:
         type: timestamptz
         default: "now()"
+      fechado_at:
+        type: timestamptz
     constraints:
-      - name: uq_participacao_bolao_usuario
+      - name: uq_ciclo_bolao_concurso
         type: UNIQUE
-        columns: [bolao_id, usuario_id]
+        columns: [bolao_id, concurso_nr]
     indexes:
-      - name: idx_participacoes_bolao
+      - name: idx_ciclos_bolao
         columns: [bolao_id]
-      - name: idx_participacoes_usuario
-        columns: [usuario_id]
+      - name: idx_ciclos_concurso
+        columns: [concurso_nr]
     rls:
       enabled: true
       policies:
-        - name: participacoes_select_own
+        - name: ciclos_select_authenticated
           operation: SELECT
           role: authenticated
-          using: "usuario_id = auth.uid()"
-        - name: participacoes_select_admin_mod
-          operation: SELECT
-          role: authenticated
-          using: "EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'moderador'))"
-        - name: participacoes_insert_admin_mod
+          using: "true"
+        - name: ciclos_insert_admin_mod
           operation: INSERT
           role: authenticated
           check: "EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'moderador'))"
-        - name: participacoes_update_admin_mod
+        - name: ciclos_update_admin_mod
           operation: UPDATE
           role: authenticated
           using: "EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'moderador'))"
 
   apostas:
     schema: public
-    description: Jogos registrados pelo grupo em cada bolao (numeros escolhidos).
+    description: Jogos registrados pelo grupo em cada ciclo (numeros escolhidos).
     columns:
       id:
         type: serial
         primary_key: true
-      bolao_id:
+      ciclo_id:
         type: integer
         not_null: true
-        references: "boloes(id)"
+        references: "ciclos(id)"
         on_delete: CASCADE
       numeros:
         type: "integer[]"
@@ -228,8 +239,8 @@ tables:
         type: timestamptz
         default: "now()"
     indexes:
-      - name: idx_apostas_bolao
-        columns: [bolao_id]
+      - name: idx_apostas_ciclo
+        columns: [ciclo_id]
     rls:
       enabled: true
       policies:
@@ -241,25 +252,162 @@ tables:
           operation: INSERT
           role: authenticated
           check: "EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'moderador'))"
+        - name: apostas_delete_admin_mod
+          operation: DELETE
+          role: authenticated
+          using: "EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'moderador'))"
+
+  participacoes:
+    schema: public
+    description: >
+      Relacao apostador <-> ciclo. Fluxo: apostador solicita (pendente) -> moderador aprova/rejeita.
+      Aprovacao recalcula valor_cota do ciclo via trigger.
+      valor_devido nao e armazenado: calcular como num_cotas * ciclo.valor_cota nas queries.
+    columns:
+      id:
+        type: serial
+        primary_key: true
+      ciclo_id:
+        type: integer
+        not_null: true
+        references: "ciclos(id)"
+        on_delete: CASCADE
+      usuario_id:
+        type: uuid
+        not_null: true
+        references: "profiles(id)"
+        on_delete: RESTRICT
+      status:
+        type: participacao_status
+        not_null: true
+        default: "'pendente'"
+      num_cotas:
+        type: integer
+        not_null: true
+        default: "1"
+        check: "num_cotas > 0"
+      valor_pago:
+        type: "numeric(10,2)"
+        not_null: true
+        default: "0"
+      created_at:
+        type: timestamptz
+        default: "now()"
+      updated_at:
+        type: timestamptz
+        default: "now()"
+    constraints:
+      - name: uq_participacao_ciclo_usuario
+        type: UNIQUE
+        columns: [ciclo_id, usuario_id]
+    indexes:
+      - name: idx_participacoes_ciclo
+        columns: [ciclo_id]
+      - name: idx_participacoes_usuario
+        columns: [usuario_id]
+    rls:
+      enabled: true
+      policies:
+        - name: participacoes_select_own
+          operation: SELECT
+          role: authenticated
+          using: "usuario_id = auth.uid()"
+        - name: participacoes_select_admin_mod
+          operation: SELECT
+          role: authenticated
+          using: "EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'moderador'))"
+        - name: participacoes_insert_authenticated
+          operation: INSERT
+          role: authenticated
+          check: "usuario_id = auth.uid() OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'moderador'))"
+        - name: participacoes_update_admin_mod
+          operation: UPDATE
+          role: authenticated
+          using: "EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'moderador'))"
 
 triggers:
   - name: on_auth_user_created
     table: "auth.users"
     event: AFTER INSERT
     function: handle_new_user
-    description: Cria public.profiles automaticamente quando usuario e criado no Auth.
+    description: Cria public.profiles automaticamente. Auth usa nickname@bolao.local como email sintetico.
     function_body: |
       BEGIN
-        INSERT INTO public.profiles (id, nome, email, role)
+        INSERT INTO public.profiles (id, nickname, telefone, role)
         VALUES (
           NEW.id,
-          COALESCE(NEW.raw_user_meta_data->>'nome', split_part(NEW.email, '@', 1)),
-          NEW.email,
+          NEW.raw_user_meta_data->>'nickname',
+          NEW.raw_user_meta_data->>'telefone',
           COALESCE(
             (NEW.raw_user_meta_data->>'role')::public.user_role,
             'apostador'::public.user_role
           )
         )
         ON CONFLICT (id) DO NOTHING;
+        RETURN NEW;
+      END;
+
+  - name: recalcular_cota_on_participacao
+    table: "public.participacoes"
+    event: AFTER INSERT OR UPDATE OR DELETE
+    function: recalcular_valor_cota
+    description: >
+      Recalcula ciclos.valor_cota sempre que uma participacao e inserida, aprovada/rejeitada ou removida.
+      Dispara em INSERT, UPDATE OF status/num_cotas, DELETE.
+      valor_cota = valor_total_jogado / SUM(num_cotas WHERE status = 'aprovado').
+    function_body: |
+      DECLARE
+        v_ciclo_id integer;
+        v_total_jogado numeric(10,2);
+        v_total_cotas integer;
+        v_novo_valor_cota numeric(10,2);
+      BEGIN
+        IF TG_OP = 'DELETE' THEN
+          v_ciclo_id := OLD.ciclo_id;
+        ELSE
+          v_ciclo_id := NEW.ciclo_id;
+        END IF;
+
+        SELECT valor_total_jogado INTO v_total_jogado
+        FROM public.ciclos WHERE id = v_ciclo_id;
+
+        SELECT COALESCE(SUM(num_cotas), 0) INTO v_total_cotas
+        FROM public.participacoes
+        WHERE ciclo_id = v_ciclo_id AND status = 'aprovado';
+
+        IF v_total_cotas > 0 AND v_total_jogado > 0 THEN
+          v_novo_valor_cota := ROUND(v_total_jogado / v_total_cotas, 2);
+        ELSE
+          v_novo_valor_cota := 0;
+        END IF;
+
+        UPDATE public.ciclos
+        SET valor_cota = v_novo_valor_cota
+        WHERE id = v_ciclo_id;
+
+        RETURN COALESCE(NEW, OLD);
+      END;
+
+  - name: recalcular_cota_on_ciclo_update
+    table: "public.ciclos"
+    event: BEFORE UPDATE
+    function: recalcular_cota_on_valor_update
+    description: Recalcula valor_cota inline quando valor_total_jogado e atualizado.
+    function_body: |
+      DECLARE
+        v_total_cotas integer;
+      BEGIN
+        IF NEW.valor_total_jogado IS DISTINCT FROM OLD.valor_total_jogado THEN
+          SELECT COALESCE(SUM(num_cotas), 0) INTO v_total_cotas
+          FROM public.participacoes
+          WHERE ciclo_id = NEW.id AND status = 'aprovado';
+
+          IF v_total_cotas > 0 AND NEW.valor_total_jogado > 0 THEN
+            NEW.valor_cota := ROUND(NEW.valor_total_jogado / v_total_cotas, 2);
+          ELSE
+            NEW.valor_cota := 0;
+          END IF;
+        END IF;
+
         RETURN NEW;
       END;

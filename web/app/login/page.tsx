@@ -8,9 +8,9 @@ export default async function LoginPage({ searchParams }: Props) {
   const params = await searchParams
   const errorMessage =
     params.error === 'credentials'
-      ? 'Email ou senha incorretos.'
+      ? 'Nickname ou telefone incorretos.'
       : params.error === 'invalid'
-        ? 'Dados invalidos.'
+        ? 'Preencha todos os campos.'
         : null
 
   return (
@@ -27,24 +27,25 @@ export default async function LoginPage({ searchParams }: Props) {
 
         <form action={login} className="flex flex-col gap-4">
           <label className="flex flex-col gap-1">
-            <span className="text-muted text-xs uppercase tracking-wide">Email</span>
+            <span className="text-muted text-xs uppercase tracking-wide">Nickname</span>
             <input
-              type="email"
-              name="email"
+              type="text"
+              name="nickname"
               required
-              autoComplete="email"
+              autoComplete="username"
+              autoCapitalize="none"
               className="bg-primary border border-muted/30 rounded px-3 py-2 text-brand text-sm focus:outline-none focus:border-accent"
             />
           </label>
 
           <label className="flex flex-col gap-1">
-            <span className="text-muted text-xs uppercase tracking-wide">Senha</span>
+            <span className="text-muted text-xs uppercase tracking-wide">Telefone</span>
             <input
-              type="password"
-              name="password"
+              type="tel"
+              name="telefone"
               required
-              autoComplete="current-password"
-              minLength={8}
+              autoComplete="tel"
+              placeholder="11987654321"
               className="bg-primary border border-muted/30 rounded px-3 py-2 text-brand text-sm focus:outline-none focus:border-accent"
             />
           </label>
