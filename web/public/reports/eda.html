@@ -123,6 +123,29 @@ nav { padding: .75rem 0; flex: 1; }
   border-radius: 3px; padding: 1px 6px; font-size: 11px; font-weight: 700;
   color: #fff; font-family: monospace;
 }
+
+.help-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: rgba(139,148,158,.12); border: 1px solid rgba(139,148,158,.3);
+  color: var(--text-dim); font-size: 8px; font-weight: 700; font-family: monospace;
+  cursor: pointer; flex-shrink: 0; transition: all .15s; user-select: none;
+  vertical-align: middle; margin-left: .35rem;
+}
+.help-btn:hover { background: rgba(139,148,158,.25); color: var(--text); border-color: var(--text-dim); }
+.help-card {
+  display: none; background: var(--surface2);
+  border: 1px solid var(--border); border-left: 3px solid var(--text-dim);
+  border-radius: 6px; padding: .55rem .75rem; margin-top: .4rem;
+  font-size: 11px; color: var(--text-dim); line-height: 1.65;
+}
+.help-card.open { display: block; }
+.help-card strong { color: var(--text); }
+.help-card kbd {
+  display: inline-block; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 3px; padding: 0 4px; font-size: 10px; font-family: monospace;
+  color: var(--text); line-height: 1.6;
+}
 </style>
 </head>
 <body>
@@ -149,7 +172,8 @@ nav { padding: .75rem 0; flex: 1; }
     </div>
   </div>
   <div class="bolao-section">
-    <div class="nav-label" style="padding:.5rem 0 .3rem;">Dezenas do Bolao</div>
+    <div style="display:flex;align-items:center;padding:.5rem 0 .3rem;"><span class="nav-label" style="padding:0;">Dezenas do Bolao</span><span class="help-btn" onclick="toggleHelp('help-bolao')">?</span></div>
+    <div class="help-card" id="help-bolao">Digite até <strong>6 dezenas</strong> (1–60) separadas por espaço ou vírgula e pressione <kbd>Enter</kbd> ou <kbd>▲</kbd>.<br>As barras dos gráficos de <strong>Frequência</strong> e <strong>Gap</strong> serão destacadas em branco.<br>Clique em <kbd>▲</kbd> novamente ou apague o campo para limpar o destaque.</div>
     <div class="bolao-input-wrap">
       <input class="bolao-input" id="bolao-input" type="text"
              placeholder="ex: 5 10 26 33 41 52" maxlength="24"
@@ -185,6 +209,11 @@ nav { padding: .75rem 0; flex: 1; }
 </main>
 </div>
 <script>
+function toggleHelp(id) {
+  var card = document.getElementById(id);
+  if (!card) return;
+  card.classList.toggle('open');
+}
 function applyBolao() {
   var val = document.getElementById('bolao-input').value;
   var nums = val.trim().split(/[\s,;]+/).map(Number)
