@@ -203,10 +203,96 @@ nav { position: relative; }
   transition: opacity .15s;
 }
 .nav-item.active .nav-icon-num { opacity: 1; }
+
+/* ── Presentation mode ─────────────────────────────────────── */
+body.presentation #sidebar       { display: none; }
+body.presentation #content       { margin-left: 0; max-width: 100%; padding: 1.5rem 3rem; }
+body.presentation .page-header   { display: none; }
+body.presentation .section       { display: none; margin-bottom: 0; }
+body.presentation .section.pres-active { display: block; }
+body.presentation .chart-frame   { height: calc(100vh - 200px) !important; }
+
+#pres-overlay {
+  display: none; position: fixed; inset: 0; z-index: 500; pointer-events: none;
+}
+body.presentation #pres-overlay { display: block; }
+
+#pres-topbar {
+  position: fixed; top: 0; left: 0; right: 0; height: 52px;
+  background: rgba(13,17,23,.92); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.5rem; pointer-events: all; z-index: 501;
+}
+#pres-logo { display: flex; align-items: center; gap: .5rem; }
+#pres-logo svg { flex-shrink: 0; }
+#pres-logo-text { font-size: 10px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--text); }
+#pres-logo-sub  { font-size: 8px; letter-spacing: .1em; color: var(--accent);
+  text-transform: uppercase; }
+#pres-slide-info { display: flex; align-items: center; gap: 1rem; }
+#pres-title-bar { font-size: 13px; font-weight: 600; color: var(--text); }
+#pres-dots { display: flex; gap: 5px; align-items: center; }
+.pres-dot { width: 6px; height: 6px; border-radius: 50%;
+  background: var(--border); transition: all .25s; cursor: pointer; pointer-events: all; }
+.pres-dot.active { background: var(--accent); transform: scale(1.4);
+  box-shadow: 0 0 6px rgba(233,69,96,.6); }
+.pres-dot.done   { background: var(--text-dim); }
+#pres-counter { font-size: 11px; color: var(--text-dim); font-family: monospace; }
+#pres-exit {
+  background: transparent; border: 1px solid var(--border); border-radius: 5px;
+  padding: 4px 10px; color: var(--text-dim); font-size: 12px; cursor: pointer;
+  pointer-events: all; transition: all .15s;
+}
+#pres-exit:hover { border-color: var(--accent); color: var(--accent); }
+
+.pres-arrow {
+  position: fixed; top: 50%; transform: translateY(-50%);
+  background: rgba(13,17,23,.7); border: 1px solid var(--border);
+  border-radius: 8px; width: 44px; height: 64px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: var(--text-dim); cursor: pointer;
+  pointer-events: all; transition: all .2s; z-index: 501;
+  backdrop-filter: blur(4px);
+}
+.pres-arrow:hover { background: rgba(233,69,96,.15); border-color: var(--accent);
+  color: var(--text); }
+.pres-arrow.disabled { opacity: .2; pointer-events: none; }
+#pres-prev { left: .75rem; }
+#pres-next { right: .75rem; }
+
+body.presentation #content { padding-top: 70px; }
+
 </style>
 </head>
 <body>
 <button id="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+<div id="pres-overlay">
+  <div id="pres-topbar">
+    <div id="pres-logo">
+      <svg width="24" height="24" viewBox="0 0 38 38" fill="none">
+        <defs><radialGradient id="bG2" cx="38%" cy="32%" r="68%">
+          <stop offset="0%" stop-color="#f5a623"/>
+          <stop offset="100%" stop-color="#e94560"/>
+        </radialGradient></defs>
+        <circle cx="19" cy="19" r="18" fill="url(#bG2)"/>
+        <ellipse cx="13" cy="12" rx="5" ry="4" fill="rgba(255,255,255,0.18)" transform="rotate(-20 13 12)"/>
+        <polyline points="6,25 10,20 14,23 18,15 22,19 27,12 32,14"
+          stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+      </svg>
+      <div><div id="pres-logo-text">Passando da Sena</div>
+           <div id="pres-logo-sub">Analytics Lab</div></div>
+    </div>
+    <div id="pres-slide-info">
+      <div id="pres-dots"></div>
+      <span id="pres-title-bar"></span>
+      <span id="pres-counter">1 / 7</span>
+    </div>
+    <button id="pres-exit" onclick="exitPresentation()">✕ Sair &nbsp;<kbd style="font-size:9px;opacity:.6">ESC</kbd></button>
+  </div>
+  <button class="pres-arrow" id="pres-prev" onclick="presNav(-1)">&#8249;</button>
+  <button class="pres-arrow" id="pres-next" onclick="presNav(1)">&#8250;</button>
+</div>
 <div id="app">
 <aside id="sidebar">
   <div class="sidebar-logo">
@@ -273,7 +359,7 @@ nav { position: relative; }
       <a href="#eda_06_evolucao_temporal" class="nav-item" data-section="eda_06_evolucao_temporal"><span class="nav-icon-num">06</span>Evolucao Temporal</a>
       <a href="#eda_07_pares_coocorrencia" class="nav-item" data-section="eda_07_pares_coocorrencia"><span class="nav-icon-num">07</span>Co-ocorrencia de Pares</a>
   </nav>
-  <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;"><span>Passando da Sena &copy; 2026</span><button id="theme-toggle" onclick="toggleTheme()" style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;color:var(--text-dim);font-size:13px;line-height:1.4;">&#9728;</button></div>
+  <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;"><span>Passando da Sena &copy; 2026</span><button onclick="enterPresentation()" title="Modo Apresentacao" style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;color:var(--text-dim);font-size:12px;line-height:1.4;margin-right:.25rem;" id="pres-btn">&#9654;</button><button id="theme-toggle" onclick="toggleTheme()" style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;color:var(--text-dim);font-size:13px;line-height:1.4;">&#9728;</button></div>
 </aside>
 <main id="content">
   <header class="page-header">
@@ -409,6 +495,80 @@ function clearBolao() {
     try { iframe.contentWindow.postMessage({type:'highlight-dezenas', dezenas:[]}, '*'); } catch(e) {}
   });
 }
+var _presSections = [
+  'eda_01_frequencia_dezenas','eda_02_frequencia_faixa','eda_03_pares_impares',
+  'eda_04_soma_dezenas','eda_05_gap_dezenas','eda_06_evolucao_temporal',
+  'eda_07_pares_coocorrencia'
+];
+var _presTitles = [
+  'Frequencia Historica','Distribuicao por Faixa','Paridade',
+  'Distribuicao da Soma','Gap entre Aparicoes','Evolucao Temporal',
+  'Co-ocorrencia de Pares'
+];
+var _presIdx = 0;
+
+function enterPresentation() {
+  // start from currently active section
+  var active = document.querySelector('.nav-item.active');
+  if (active && active.dataset.section) {
+    var i = _presSections.indexOf(active.dataset.section);
+    if (i >= 0) _presIdx = i;
+  }
+  // build dots
+  var dotsEl = document.getElementById('pres-dots');
+  dotsEl.innerHTML = _presSections.map(function(_, i) {
+    return '<span class="pres-dot" onclick="presGoTo(' + i + ')"></span>';
+  }).join('');
+  document.body.classList.add('presentation');
+  _updatePresSlide();
+}
+
+function exitPresentation() {
+  document.body.classList.remove('presentation');
+  document.querySelectorAll('.section').forEach(function(s) {
+    s.classList.remove('pres-active');
+  });
+  // scroll to active section
+  var sec = document.getElementById(_presSections[_presIdx]);
+  if (sec) setTimeout(function(){ sec.scrollIntoView({behavior:'smooth', block:'start'}); }, 100);
+}
+
+function presNav(dir) {
+  _presIdx = Math.max(0, Math.min(_presSections.length - 1, _presIdx + dir));
+  _updatePresSlide();
+}
+
+function presGoTo(idx) { _presIdx = idx; _updatePresSlide(); }
+
+function _updatePresSlide() {
+  var n = _presSections.length;
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('pres-active'); });
+  document.getElementById(_presSections[_presIdx]).classList.add('pres-active');
+  document.getElementById('pres-title-bar').textContent = _presTitles[_presIdx];
+  document.getElementById('pres-counter').textContent = (_presIdx + 1) + ' / ' + n;
+  // update dots
+  document.querySelectorAll('.pres-dot').forEach(function(d, i) {
+    d.classList.toggle('active', i === _presIdx);
+    d.classList.toggle('done', i < _presIdx);
+  });
+  // update arrows
+  document.getElementById('pres-prev').classList.toggle('disabled', _presIdx === 0);
+  document.getElementById('pres-next').classList.toggle('disabled', _presIdx === n - 1);
+  // update nav highlight
+  navLinks.forEach(function(a) {
+    a.classList.toggle('active', a.dataset.section === _presSections[_presIdx]);
+  });
+  updateNavProgress(_presSections[_presIdx]);
+  window.scrollTo(0, 0);
+}
+
+document.addEventListener('keydown', function(e) {
+  if (!document.body.classList.contains('presentation')) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); presNav(1); }
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { e.preventDefault(); presNav(-1); }
+  if (e.key === 'Escape') exitPresentation();
+});
+
 function toggleTheme() {
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
   const next = isLight ? 'dark' : 'light';
