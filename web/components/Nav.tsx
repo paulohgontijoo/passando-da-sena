@@ -6,7 +6,8 @@ import type { UserRole } from '@/types/database'
 
 const roleLabel: Record<UserRole, string> = {
   admin: 'Admin',
-  apostador: '',  // apostador nao exibe badge de role
+  moderador: 'Mod',
+  apostador: '',
 }
 
 export async function Nav() {

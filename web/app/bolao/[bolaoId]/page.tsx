@@ -2,7 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
 import { Nav } from '@/components/Nav'
-import { adicionarMembro, alterarRoleMembro, removerMembro } from '@/app/bolao/actions'
+import { adicionarMembro, alterarRoleMembro, removerMembro, aprovarSolicitacao, rejeitarSolicitacao } from '@/app/bolao/actions'
 import type { CicloStatus } from '@/types/database'
 
 const statusLabel: Record<CicloStatus, string> = {
@@ -47,16 +47,47 @@ export default async function BolaoDetalhePage({ params }: Params) {
     .eq('bolao_id', id)
     .order('created_at', { ascending: false })
 
-  const { data: membros } = await supabase
+  // Duas queries separadas para evitar dependência do schema cache do PostgREST
+  const { data: membrosRaw } = await supabase
     .from('bolao_membros')
-    .select('id, role, usuario_id, profiles(nickname)')
+    .select('id, role, usuario_id, adicionado_por')
     .eq('bolao_id', id)
+    .order('created_at')
+
+  const membroUserIds = (membrosRaw ?? []).map((m) => m.usuario_id)
+  const { data: membrosProfiles } = membroUserIds.length
+    ? await supabase.from('profiles').select('id, nickname').in('id', membroUserIds)
+    : { data: [] }
+
+  const profileMap = Object.fromEntries((membrosProfiles ?? []).map((p) => [p.id, p]))
+
+  const membros = (membrosRaw ?? []).map((m) => ({
+    ...m,
+    profiles: profileMap[m.usuario_id] ?? null,
+  }))
+
+  // Solicitacoes pendentes de ingresso (so carrega se mod)
+  const { data: solicitacoesRaw } = await supabase
+    .from('bolao_solicitacoes')
+    .select('id, usuario_id, created_at')
+    .eq('bolao_id', id)
+    .eq('status', 'pendente')
     .order('created_at')
 
   // Checar se o usuário atual é mod deste grupo
   const isAdmin = profile?.role === 'admin'
   const meuMembro = (membros ?? []).find((m) => m.usuario_id === user.id)
   const isMod = isAdmin || meuMembro?.role === 'moderador'
+
+  const solicitacoesUserIds = (solicitacoesRaw ?? []).map((s) => s.usuario_id)
+  const { data: solicitacoesProfiles } = solicitacoesUserIds.length
+    ? await supabase.from('profiles').select('id, nickname').in('id', solicitacoesUserIds)
+    : { data: [] }
+  const solProfileMap = Object.fromEntries((solicitacoesProfiles ?? []).map((p) => [p.id, p]))
+  const solicitacoes = (solicitacoesRaw ?? []).map((s) => ({
+    ...s,
+    nickname: solProfileMap[s.usuario_id]?.nickname ?? '?',
+  }))
 
   // Usuários que ainda não são membros (para adicionar)
   const membroIds = new Set((membros ?? []).map((m) => m.usuario_id))
@@ -98,7 +129,7 @@ export default async function BolaoDetalhePage({ params }: Params) {
               href={`/bolao/ciclos/novo?bolaoId=${bolao.id}`}
               className="bg-accent hover:bg-accent/90 text-white text-sm font-semibold px-4 py-2 rounded transition-colors shrink-0"
             >
-              + Novo Ciclo
+              + Novo Concurso
             </Link>
           )}
         </div>
@@ -159,6 +190,37 @@ export default async function BolaoDetalhePage({ params }: Params) {
           </div>
         )}
 
+        {/* Solicitacoes de ingresso */}
+        {isMod && solicitacoes.length > 0 && (
+          <div className="bg-surface rounded-lg p-5 space-y-3 border border-yellow-900/30">
+            <h2 className="text-highlight font-semibold text-sm">
+              Solicitacoes de Ingresso
+              <span className="ml-2 px-2 py-0.5 rounded-full bg-yellow-900/40 text-xs">{solicitacoes.length}</span>
+            </h2>
+            <div className="space-y-2">
+              {solicitacoes.map((s) => (
+                <div key={s.id} className="flex items-center justify-between bg-primary rounded px-4 py-3 gap-4">
+                  <span className="text-brand text-sm font-medium">{s.nickname}</span>
+                  <div className="flex gap-2">
+                    <form action={aprovarAction.bind(null, s.id)}>
+                      <button type="submit"
+                        className="text-xs bg-green-900/40 hover:bg-green-900/60 text-green-400 px-3 py-1.5 rounded transition-colors cursor-pointer">
+                        Aprovar
+                      </button>
+                    </form>
+                    <form action={rejeitarAction.bind(null, s.id)}>
+                      <button type="submit"
+                        className="text-xs border border-muted/20 hover:border-accent/40 text-muted hover:text-accent px-3 py-1.5 rounded transition-colors cursor-pointer">
+                        Rejeitar
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Membros do grupo */}
         <div className="bg-surface rounded-lg p-5 space-y-4">
           <h2 className="text-brand font-semibold">
@@ -209,6 +271,12 @@ export default async function BolaoDetalhePage({ params }: Params) {
           </div>
 
           {/* Adicionar membro */}
+          {isMod && usuariosDisponiveis.length === 0 && listaMembros.length > 0 && (
+            <p className="text-muted text-xs pt-4 border-t border-muted/20">
+              Todos os usuários cadastrados já são membros deste grupo.
+            </p>
+          )}
+
           {isMod && usuariosDisponiveis.length > 0 && (
             <form action={adicionarMembroAction.bind(null, id)} className="flex flex-wrap gap-2 items-end pt-4 border-t border-muted/20">
               <label className="flex flex-col gap-1">
@@ -242,6 +310,16 @@ export default async function BolaoDetalhePage({ params }: Params) {
       </main>
     </div>
   )
+}
+
+async function aprovarAction(solicitacaoId: number, _fd: FormData) {
+  'use server'
+  await aprovarSolicitacao(solicitacaoId)
+}
+
+async function rejeitarAction(solicitacaoId: number, _fd: FormData) {
+  'use server'
+  await rejeitarSolicitacao(solicitacaoId)
 }
 
 async function adicionarMembroAction(bolaoId: number, formData: FormData) {

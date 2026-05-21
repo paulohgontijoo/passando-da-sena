@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'apostador'
+export type UserRole = 'admin' | 'moderador' | 'apostador'
 export type BolaoMembroRole = 'moderador' | 'apostador'
 export type CicloStatus = 'rascunho' | 'aberto' | 'fechado' | 'sorteado'
 export type ParticipacaoStatus = 'pendente' | 'aprovado' | 'rejeitado'
@@ -8,6 +8,7 @@ export interface Profile {
   nickname: string
   telefone: string
   role: UserRole
+  nome: string | null
   created_at: string
 }
 

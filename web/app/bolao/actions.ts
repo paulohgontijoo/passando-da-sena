@@ -280,6 +280,16 @@ export async function adicionarMembro(bolaoId: number, formData: FormData) {
   if (!usuario_id) throw new Error('Selecione um usuário')
   if (!['moderador', 'apostador'].includes(role)) throw new Error('Role inválida')
 
+  // Só insere se ainda não é membro — alteração de role usa alterarRoleMembro
+  const { data: existing } = await supabase
+    .from('bolao_membros')
+    .select('id')
+    .eq('bolao_id', bolaoId)
+    .eq('usuario_id', usuario_id)
+    .maybeSingle()
+
+  if (existing) return // já é membro, silencia sem erro
+
   const { error } = await supabase.from('bolao_membros').insert({
     bolao_id: bolaoId,
     usuario_id,
@@ -317,4 +327,79 @@ export async function removerMembro(bolaoId: number, membroId: number) {
     .eq('bolao_id', bolaoId)
   if (error) throw new Error(error.message)
   revalidatePath(`/bolao/${bolaoId}`)
+}
+
+// ── Solicitações de ingresso ──────────────────────────────
+
+export async function solicitarIngresso(bolaoId: number) {
+  const { supabase, user } = await getAuthUser()
+
+  const { error } = await supabase.from('bolao_solicitacoes').insert({
+    bolao_id: bolaoId,
+    usuario_id: user.id,
+    status: 'pendente',
+  })
+  if (error) throw new Error(error.message)
+  revalidatePath('/bolao')
+}
+
+export async function cancelarSolicitacao(bolaoId: number) {
+  const { supabase, user } = await getAuthUser()
+
+  const { error } = await supabase
+    .from('bolao_solicitacoes')
+    .delete()
+    .eq('bolao_id', bolaoId)
+    .eq('usuario_id', user.id)
+  if (error) throw new Error(error.message)
+  revalidatePath('/bolao')
+}
+
+export async function aprovarSolicitacao(solicitacaoId: number) {
+  const { supabase, user } = await getAuthUser()
+
+  const { data: sol } = await supabase
+    .from('bolao_solicitacoes')
+    .select('bolao_id, usuario_id')
+    .eq('id', solicitacaoId)
+    .single()
+  if (!sol) throw new Error('Solicitação não encontrada')
+
+  await assertModDoBolao(supabase, user.id, sol.bolao_id)
+
+  await supabase
+    .from('bolao_solicitacoes')
+    .update({ status: 'aprovado' })
+    .eq('id', solicitacaoId)
+
+  await supabase.from('bolao_membros').insert({
+    bolao_id: sol.bolao_id,
+    usuario_id: sol.usuario_id,
+    role: 'apostador',
+    adicionado_por: user.id,
+  })
+
+  revalidatePath(`/bolao/${sol.bolao_id}`)
+  revalidatePath('/bolao')
+}
+
+export async function rejeitarSolicitacao(solicitacaoId: number) {
+  const { supabase, user } = await getAuthUser()
+
+  const { data: sol } = await supabase
+    .from('bolao_solicitacoes')
+    .select('bolao_id')
+    .eq('id', solicitacaoId)
+    .single()
+  if (!sol) throw new Error('Solicitação não encontrada')
+
+  await assertModDoBolao(supabase, user.id, sol.bolao_id)
+
+  await supabase
+    .from('bolao_solicitacoes')
+    .update({ status: 'rejeitado' })
+    .eq('id', solicitacaoId)
+
+  revalidatePath(`/bolao/${sol.bolao_id}`)
+  revalidatePath('/bolao')
 }
