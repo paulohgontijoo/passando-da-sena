@@ -3907,6 +3907,23 @@ document.addEventListener('DOMContentLoaded', function() {
   try { theme = localStorage.getItem('eda-theme') || 'dark'; } catch(e) {}
   _applyTheme(theme);
 });
+function _updateChart(data) {
+  var div = document.querySelector('.plotly-graph-div');
+  if (!div || !window.Plotly) return;
+  div._origColors = null; // reset so highlight re-captures new colors
+  var upd = {};
+  if (data.y)      upd.y           = [data.y];
+  if (data.colors) upd['marker.color'] = [data.colors];
+  if (data.text)   upd.text        = [data.text];
+  if (Object.keys(upd).length) Plotly.restyle(div, upd, [0]);
+  if (data.meanY !== undefined) {
+    Plotly.relayout(div, {
+      'shapes[0].y0': data.meanY, 'shapes[0].y1': data.meanY,
+      'annotations[0].y': data.meanY,
+      'annotations[0].text': data.meanText || ('Media: ' + data.meanY + 'x')
+    });
+  }
+}
 function _highlightDezenas(selected) {
   var div = document.querySelector('.plotly-graph-div');
   if (!div || !window.Plotly) return;
@@ -3929,6 +3946,7 @@ function _highlightDezenas(selected) {
 window.addEventListener('message', function(e) {
   if (e.data && e.data.type === 'set-theme') _applyTheme(e.data.theme);
   if (e.data && e.data.type === 'highlight-dezenas') _highlightDezenas(e.data.dezenas);
+  if (e.data && e.data.type === 'update-chart') _updateChart(e.data);
 });
 </script>
 </body>
