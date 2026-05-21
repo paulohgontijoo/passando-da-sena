@@ -74,7 +74,26 @@ Você é o assistente analítico do projeto **Mega Sena Bolão**, um estudo esta
 - **Hospedagem**: Vercel — plano gratuito, sem conta paga.
 - **Execução local**: `npm run dev`, zero configuração adicional.
 - **Dados**: arquivo JSON estático importado diretamente no build (`/data/sorteios.json`). Nenhuma chamada de API em runtime — tudo resolvido em build time via `getStaticProps` ou importação direta.
-- **Autenticação**: NextAuth.js com provider de credenciais (usuário/senha). Sem OAuth externo. Usuários armazenados em arquivo JSON estático no repositório (`/data/users.json` com senhas em hash bcrypt). Sem banco de dados.
+- **Autenticação**: Supabase Auth via `@supabase/ssr`. Utilitários em `web/utils/supabase/`. Login em `web/app/login/`. Sem OAuth externo.
+
+### Testes — Playwright
+
+- **Ferramenta**: Playwright (`@playwright/test`), rodando Chromium headless.
+- **Foco**: regressão visual (snapshots) + fluxos de UX — não lógica de negócio.
+- **Localização**: `web/tests/e2e/` (specs) e `web/tests/e2e/__snapshots__/` (baselines commitados).
+- **Auth nos testes**: `global-setup.ts` faz login real no Supabase uma vez por run, salva cookies em `web/playwright/.auth/user.json` (gitignored).
+- **Credenciais de teste**: arquivo `web/.env.test` (gitignored) com `TEST_EMAIL` e `TEST_PASSWORD`. Template em `web/.env.test.example`. Usuário deve existir no Supabase Dashboard.
+
+```bash
+# rodar todos os testes (requer npm run dev em paralelo)
+npm run test:e2e
+
+# regenerar snapshots após mudança visual intencional
+npm run test:e2e:update
+```
+
+> **Regra**: toda alteração visual intencional (layout, cores, componentes) exige `npm run test:e2e:update` antes de commitar, para manter os baselines sincronizados.
+
 
 ### Roles e Controle de Acesso
 Três níveis de acesso com visão customizada:
@@ -105,7 +124,7 @@ Cada etapa é apresentada com plano detalhado antes da implementação. Aprovaç
 | 3 | Análises estatísticas dirigidas pelos inputs do usuário |
 | 4 | Geração e exportação das visualizações |
 | 5 | Setup do projeto Next.js + estrutura de pastas + dados estáticos |
-| 6 | Autenticação com NextAuth.js + roles + `users.json` |
+| 6 | Autenticação com Supabase Auth + roles |
 | 7 | Páginas e componentes: dashboard, bolão, gestão |
 | 8 | Deploy na Vercel + validação do plano gratuito |
 
