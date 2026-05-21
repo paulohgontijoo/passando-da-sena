@@ -1,38 +1,25 @@
 #!/usr/bin/env python3
 """
-assemble_report.py -- Monta eda.html a partir dos exports do notebook
-Execucao: python analysis/assemble_report.py  (sem venv necessario -- stdlib apenas)
-Saida: ../../web/public/reports/eda.html
+build_report.py -- Monta eda.html a partir dos fragmentos exportados pelo notebook.
+
+Fluxo:
+  Notebook exporta python/exports/eda_*.html
+  -> este script copia para web/public/exports/
+  -> e monta web/public/reports/eda.html com sidebar + iframes
+
+Execucao: python analysis/build_report.py  (stdlib apenas, sem venv necessario)
 """
 
 import json
 import shutil
+import sys
 from pathlib import Path
 
-ROOT     = Path(__file__).resolve().parents[2]
-EXPORTS  = ROOT / "python" / "exports"
-WEB_EXP  = ROOT / "web" / "public" / "exports"
-OUT      = ROOT / "web" / "public" / "reports" / "eda.html"
-SECTIONS = EXPORTS / "report_sections.json"
-
-WEB_EXP.mkdir(parents=True, exist_ok=True)
-OUT.parent.mkdir(parents=True, exist_ok=True)
-
-
-def load_sections():
-    return json.loads(SECTIONS.read_text())
-
-
-def copy_exports(sections):
-    for s in sections:
-        src = EXPORTS / s["file"]
-        dst = WEB_EXP / s["file"]
-        if src.exists():
-            shutil.copy2(src, dst)
-            print(f"  copiado: {s['file']}")
-        else:
-            print(f"  AVISO: {s['file']} nao encontrado em exports/")
-
+ROOT    = Path(__file__).resolve().parents[2]
+EXPORTS = ROOT / "python" / "exports"
+WEB_EXP = ROOT / "web" / "public" / "exports"
+OUT     = ROOT / "web" / "public" / "reports" / "eda.html"
+SECTIONS_FILE = EXPORTS / "report_sections.json"
 
 _CSS = """
 :root {
@@ -47,8 +34,7 @@ body { background: var(--bg); color: var(--text);
 #app { display: flex; min-height: 100vh; }
 #sidebar { width: var(--sidebar-w); background: var(--surface);
   border-right: 1px solid var(--border); position: fixed; top: 0; left: 0;
-  height: 100vh; overflow-y: auto; z-index: 100;
-  display: flex; flex-direction: column; }
+  height: 100vh; overflow-y: auto; z-index: 100; display: flex; flex-direction: column; }
 #content { margin-left: var(--sidebar-w); flex: 1; padding: 2rem 2.5rem; max-width: 1100px; }
 .sidebar-logo { display: flex; align-items: center; gap: .75rem;
   padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); }
@@ -116,11 +102,25 @@ navLinks.forEach(a => a.addEventListener('click', () => {
 """
 
 
-def section_id(filename):
+def section_id(filename: str) -> str:
     return Path(filename).stem
 
 
-def build_nav(sections):
+def validate_sections(sections: list) -> list[str]:
+    missing = [s["file"] for s in sections if not (EXPORTS / s["file"]).exists()]
+    return missing
+
+
+def copy_exports(sections: list) -> None:
+    WEB_EXP.mkdir(parents=True, exist_ok=True)
+    for s in sections:
+        src = EXPORTS / s["file"]
+        dst = WEB_EXP / s["file"]
+        shutil.copy2(src, dst)
+        print(f"  copiado: {s['file']}")
+
+
+def build_nav(sections: list) -> str:
     items = []
     for i, s in enumerate(sections):
         sid  = section_id(s["file"])
@@ -132,7 +132,7 @@ def build_nav(sections):
     return "\n      ".join(items)
 
 
-def build_sections(sections):
+def build_sections(sections: list) -> str:
     parts = []
     for i, s in enumerate(sections):
         sid    = section_id(s["file"])
@@ -145,17 +145,16 @@ def build_sections(sections):
             f'<span class="section-num">{num}</span>'
             f'<div>'
             f'<h2 class="section-title">{s["title"]}</h2>'
-            f'<p class="section-subtitle">{s["description"]}</p>'
+            f'<p class="section-subtitle">{s.get("description", "")}</p>'
             f'</div></div>'
             f'<iframe src="{src}" class="chart-frame" height="{height}" '
-            f'frameborder="0" scrolling="no" '
-            f'title="{s["title"]}"></iframe>'
+            f'frameborder="0" scrolling="no" title="{s["title"]}"></iframe>'
             f'</section>'
         )
     return "\n    ".join(parts)
 
 
-def build_html(sections):
+def build_html(sections: list) -> str:
     nav           = build_nav(sections)
     sections_html = build_sections(sections)
     total         = len(sections)
@@ -197,14 +196,23 @@ def build_html(sections):
     )
 
 
-def main():
-    print("=== assemble_report ===")
-    sections = load_sections()
+def main() -> None:
+    print("=== build_report ===")
+
+    sections = json.loads(SECTIONS_FILE.read_text(encoding="utf-8"))
     print(f"  {len(sections)} secoes em report_sections.json")
 
-    print("Copiando exports para web/public/exports/...")
+    missing = validate_sections(sections)
+    if missing:
+        print("ERRO: fragmentos ausentes em python/exports/:")
+        for f in missing:
+            print(f"  - {f}")
+        sys.exit(1)
+
+    print("Copiando para web/public/exports/...")
     copy_exports(sections)
 
+    OUT.parent.mkdir(parents=True, exist_ok=True)
     html = build_html(sections)
     OUT.write_text(html, encoding="utf-8")
     print(f"Relatorio salvo: {OUT} ({OUT.stat().st_size // 1024} KB)")

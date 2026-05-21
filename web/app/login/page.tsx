@@ -1,4 +1,4 @@
-import { login } from "./actions"
+import { login } from './actions'
 
 type Props = {
   searchParams: Promise<{ error?: string }>
@@ -7,50 +7,56 @@ type Props = {
 export default async function LoginPage({ searchParams }: Props) {
   const params = await searchParams
   const errorMessage =
-    params.error === "credentials"
-      ? "Email ou senha incorretos."
-      : params.error === "invalid"
-        ? "Dados invalidos."
+    params.error === 'credentials'
+      ? 'Email ou senha incorretos.'
+      : params.error === 'invalid'
+        ? 'Dados invalidos.'
         : null
 
   return (
-    <main style={{ fontFamily: "sans-serif", maxWidth: 360, margin: "20vh auto", padding: "0 1rem" }}>
-      <h1 style={{ marginBottom: "1.5rem" }}>Passando da Sena</h1>
+    <main className="min-h-screen bg-primary flex items-center justify-center px-4">
+      <div className="w-full max-w-sm bg-surface rounded-lg p-8 shadow-xl">
+        <h1 className="text-brand text-2xl font-bold mb-1">Passando da Sena</h1>
+        <p className="text-muted text-sm mb-6">Mega Sena Bolao Analytics</p>
 
-      {errorMessage && (
-        <p role="alert" style={{ color: "red", marginBottom: "1rem" }}>
-          {errorMessage}
-        </p>
-      )}
+        {errorMessage && (
+          <p role="alert" className="text-accent text-sm mb-4">
+            {errorMessage}
+          </p>
+        )}
 
-      <form action={login} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-        <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          Email
-          <input
-            type="email"
-            name="email"
-            required
-            autoComplete="email"
-            style={{ padding: "0.5rem", fontSize: "1rem" }}
-          />
-        </label>
+        <form action={login} className="flex flex-col gap-4">
+          <label className="flex flex-col gap-1">
+            <span className="text-muted text-xs uppercase tracking-wide">Email</span>
+            <input
+              type="email"
+              name="email"
+              required
+              autoComplete="email"
+              className="bg-primary border border-muted/30 rounded px-3 py-2 text-brand text-sm focus:outline-none focus:border-accent"
+            />
+          </label>
 
-        <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          Senha
-          <input
-            type="password"
-            name="password"
-            required
-            autoComplete="current-password"
-            minLength={8}
-            style={{ padding: "0.5rem", fontSize: "1rem" }}
-          />
-        </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-muted text-xs uppercase tracking-wide">Senha</span>
+            <input
+              type="password"
+              name="password"
+              required
+              autoComplete="current-password"
+              minLength={8}
+              className="bg-primary border border-muted/30 rounded px-3 py-2 text-brand text-sm focus:outline-none focus:border-accent"
+            />
+          </label>
 
-        <button type="submit" style={{ padding: "0.75rem", fontSize: "1rem", cursor: "pointer" }}>
-          Entrar
-        </button>
-      </form>
+          <button
+            type="submit"
+            className="mt-2 bg-accent hover:bg-accent/90 text-white font-semibold py-2 rounded transition-colors cursor-pointer"
+          >
+            Entrar
+          </button>
+        </form>
+      </div>
     </main>
   )
 }

@@ -380,7 +380,7 @@ body.presentation #content { padding-top: 70px; }
     <div id="pres-slide-info">
       <div id="pres-dots"></div>
       <span id="pres-title-bar"></span>
-      <span id="pres-counter">1 / 7</span>
+      <span id="pres-counter">1 / 16</span>
     </div>
     <button id="pres-exit" onclick="exitPresentation()">✕ Sair &nbsp;<kbd style="font-size:9px;opacity:.6">ESC</kbd></button>
   </div>
@@ -459,6 +459,18 @@ body.presentation #content { padding-top: 70px; }
       <a href="#eda_05_gap_dezenas" class="nav-item" data-section="eda_05_gap_dezenas"><span class="nav-icon-num">05</span>Gap entre Aparicoes</a>
       <a href="#eda_06_evolucao_temporal" class="nav-item" data-section="eda_06_evolucao_temporal"><span class="nav-icon-num">06</span>Evolucao Temporal</a>
       <a href="#eda_07_pares_coocorrencia" class="nav-item" data-section="eda_07_pares_coocorrencia"><span class="nav-icon-num">07</span>Co-ocorrencia de Pares</a>
+    <div class="nav-label">Localidade</div>
+    <a href="#eda_08a_local_frequencia" class="nav-item" data-section="eda_08a_local_frequencia"><span class="nav-icon-num">08</span>Freq. de Sorteios</a>
+    <a href="#eda_08b_local_acumulo_premio" class="nav-item" data-section="eda_08b_local_acumulo_premio"><span class="nav-icon-num">09</span>Acumulo e Premio</a>
+    <a href="#eda_08c_local_heatmap" class="nav-item" data-section="eda_08c_local_heatmap"><span class="nav-icon-num">10</span>Heatmap de Dezenas</a>
+    <div class="nav-label">Ordem de Sorteio</div>
+    <a href="#eda_09a_ordem_boxplot" class="nav-item" data-section="eda_09a_ordem_boxplot"><span class="nav-icon-num">11</span>Boxplot</a>
+    <a href="#eda_09b_ordem_heatmap" class="nav-item" data-section="eda_09b_ordem_heatmap"><span class="nav-icon-num">12</span>Heatmap</a>
+    <a href="#eda_09c_ordem_spearman" class="nav-item" data-section="eda_09c_ordem_spearman"><span class="nav-icon-num">13</span>Spearman</a>
+    <div class="nav-label">Testes Estatisticos</div>
+    <a href="#eda_10a_correlacao_matrix" class="nav-item" data-section="eda_10a_correlacao_matrix"><span class="nav-icon-num">14</span>Correlacao</a>
+    <a href="#eda_10b_soma_acumulado_ks" class="nav-item" data-section="eda_10b_soma_acumulado_ks"><span class="nav-icon-num">15</span>Soma: KS</a>
+    <a href="#eda_10c_chi2_paridade" class="nav-item" data-section="eda_10c_chi2_paridade"><span class="nav-icon-num">16</span>Chi-square</a>
   </nav>
   <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;"><span>Passando da Sena &copy; 2026</span><button id="theme-toggle" onclick="toggleTheme()" style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;color:var(--text-dim);font-size:13px;line-height:1.4;">&#9728;</button></div>
 </aside>
@@ -466,7 +478,7 @@ body.presentation #content { padding-top: 70px; }
   <header class="page-header">
     <div>
       <h1>Analise Exploratoria <span class="badge">EDA</span></h1>
-      <p>7 analises &bull; gerado a partir dos exports do notebook</p>
+      <p>16 analises &bull; gerado a partir dos exports do notebook</p>
     </div>
     <button id="start-pres-btn" onclick="handlePresClick(event)">
       <div class="pres-btn-icon">
@@ -487,6 +499,15 @@ body.presentation #content { padding-top: 70px; }
     <section id="eda_05_gap_dezenas" class="section"><div class="section-header" onclick="toggleInsight('eda_05_gap_dezenas')"><span class="section-num">05</span><div><h2 class="section-title">Gap entre Aparicoes</h2><p class="section-subtitle">Intervalo medio (em concursos) entre aparicoes consecutivas de cada dezena.</p></div><span style="display:inline-flex;align-items:center;gap:.3rem;margin-left:.5rem;margin-top:3px;"><span class="insight-btn">i</span><span style="font-size:10px;color:var(--text-dim);letter-spacing:.04em;cursor:pointer;">insights</span></span></div><div class="insight-card open" id="insight-eda_05_gap_dezenas">Com 60 dezenas e 6 sorteadas por concurso, cada dezena sai em média a cada <strong>~10 sorteios</strong>. Dezenas com gap atual muito acima disso estão "atrasadas" — mas lembre-se: cada sorteio é independente.</div><iframe src="/exports/eda_05_gap_dezenas.html" class="chart-frame" height="460" frameborder="0" scrolling="no" title="Gap entre Aparicoes"></iframe></section>
     <section id="eda_06_evolucao_temporal" class="section"><div class="section-header" onclick="toggleInsight('eda_06_evolucao_temporal')"><span class="section-num">06</span><div><h2 class="section-title">Evolucao Temporal</h2><p class="section-subtitle">Frequencia em janela deslizante de 200 sorteios. Destaque para top-3 e bottom-3 por frequencia total.</p></div><span style="display:inline-flex;align-items:center;gap:.3rem;margin-left:.5rem;margin-top:3px;"><span class="insight-btn">i</span><span style="font-size:10px;color:var(--text-dim);letter-spacing:.04em;cursor:pointer;">insights</span></span></div><div class="insight-card open" id="insight-eda_06_evolucao_temporal">Frequência calculada em janela deslizante de <strong>200 sorteios</strong>. Top-3 históricas: <strong>10, 53, 37</strong>. Bottom-3 históricas: <strong>26, 21, 55</strong>. Observe se o ranking de curto prazo diverge do histórico.</div><iframe src="/exports/eda_06_evolucao_temporal.html" class="chart-frame" height="460" frameborder="0" scrolling="no" title="Evolucao Temporal"></iframe></section>
     <section id="eda_07_pares_coocorrencia" class="section"><div class="section-header" onclick="toggleInsight('eda_07_pares_coocorrencia')"><span class="section-num">07</span><div><h2 class="section-title">Co-ocorrencia de Pares</h2><p class="section-subtitle">Os 30 pares de dezenas que mais apareceram juntos no mesmo sorteio.</p></div><span style="display:inline-flex;align-items:center;gap:.3rem;margin-left:.5rem;margin-top:3px;"><span class="insight-btn">i</span><span style="font-size:10px;color:var(--text-dim);letter-spacing:.04em;cursor:pointer;">insights</span></span></div><div class="insight-card open" id="insight-eda_07_pares_coocorrencia">Exibe os <strong>30 pares</strong> que mais apareceram juntos. Co-ocorrência esperada por acaso: ~<strong>30x</strong> em 3.002 sorteios. Pares muito acima disso podem indicar padrão — ou simplesmente que ambas as dezenas são individualmente frequentes.</div><iframe src="/exports/eda_07_pares_coocorrencia.html" class="chart-frame" height="750" frameborder="0" scrolling="no" title="Co-ocorrencia de Pares"></iframe></section>
+  <section id="eda_08a_local_frequencia" class="section"><div class="section-header" onclick="toggleInsight('eda_08a_local_frequencia')"><span class="section-num">08</span><div><h2 class="section-title">Local — Frequencia de Sorteios</h2><p class="section-subtitle">Top 15 localidades com mais sorteios registrados.</p></div><span style="display:inline-flex;align-items:center;gap:.3rem;margin-left:.5rem;margin-top:3px;"><span class="insight-btn">i</span><span style="font-size:10px;color:var(--text-dim);letter-spacing:.04em;cursor:pointer;">insights</span></span></div><div class="insight-card open" id="insight-eda_08a_local_frequencia">Cidades sede concentram o maior volume. A distribuicao nao e uniforme — alguns locais realizaram dezenas de sorteios, outros apenas um.</div><iframe src="/exports/eda_08a_local_frequencia.html" class="chart-frame" height="460" frameborder="0" scrolling="no" title="Local — Frequencia de Sorteios"></iframe></section>
+  <section id="eda_08b_local_acumulo_premio" class="section"><div class="section-header" onclick="toggleInsight('eda_08b_local_acumulo_premio')"><span class="section-num">09</span><div><h2 class="section-title">Local — Acumulo e Premio</h2><p class="section-subtitle">Taxa de acumulo e premio medio da sena por localidade (top 10 por volume).</p></div><span style="display:inline-flex;align-items:center;gap:.3rem;margin-left:.5rem;margin-top:3px;"><span class="insight-btn">i</span><span style="font-size:10px;color:var(--text-dim);letter-spacing:.04em;cursor:pointer;">insights</span></span></div><div class="insight-card open" id="insight-eda_08b_local_acumulo_premio">Localidades com alta taxa de acumulo tendem a ter premios medios maiores, refletindo o ciclo de acumulacao, nao diferenca estrutural nos sorteios.</div><iframe src="/exports/eda_08b_local_acumulo_premio.html" class="chart-frame" height="460" frameborder="0" scrolling="no" title="Local — Acumulo e Premio"></iframe></section>
+  <section id="eda_08c_local_heatmap" class="section"><div class="section-header" onclick="toggleInsight('eda_08c_local_heatmap')"><span class="section-num">10</span><div><h2 class="section-title">Local — Heatmap de Dezenas</h2><p class="section-subtitle">Desvio relativo de frequencia das dezenas por local (top 8 por volume).</p></div><span style="display:inline-flex;align-items:center;gap:.3rem;margin-left:.5rem;margin-top:3px;"><span class="insight-btn">i</span><span style="font-size:10px;color:var(--text-dim);letter-spacing:.04em;cursor:pointer;">insights</span></span></div><div class="insight-card open" id="insight-eda_08c_local_heatmap">Ausencia de padrao consistente entre localidades sugere independencia entre o local do sorteio e as dezenas sorteadas.</div><iframe src="/exports/eda_08c_local_heatmap.html" class="chart-frame" height="520" frameborder="0" scrolling="no" title="Local — Heatmap de Dezenas"></iframe></section>
+  <section id="eda_09a_ordem_boxplot" class="section"><div class="section-header" onclick="toggleInsight('eda_09a_ordem_boxplot')"><span class="section-num">11</span><div><h2 class="section-title">Ordem de Sorteio — Boxplot</h2><p class="section-subtitle">Distribuicao do valor das dezenas por posicao de sorteio ao vivo.</p></div><span style="display:inline-flex;align-items:center;gap:.3rem;margin-left:.5rem;margin-top:3px;"><span class="insight-btn">i</span><span style="font-size:10px;color:var(--text-dim);letter-spacing:.04em;cursor:pointer;">insights</span></span></div><div class="insight-card open" id="insight-eda_09a_ordem_boxplot">Cada posicao de sorteio ao vivo tende a exibir distribuicao similar. Pequenas diferencas sao esperadas por acaso em 3k+ sorteios.</div><iframe src="/exports/eda_09a_ordem_boxplot.html" class="chart-frame" height="460" frameborder="0" scrolling="no" title="Ordem de Sorteio — Boxplot"></iframe></section>
+  <section id="eda_09b_ordem_heatmap" class="section"><div class="section-header" onclick="toggleInsight('eda_09b_ordem_heatmap')"><span class="section-num">12</span><div><h2 class="section-title">Ordem de Sorteio — Heatmap</h2><p class="section-subtitle">Probabilidade condicional P(posicao | dezena) — distribuicao normalizada.</p></div><span style="display:inline-flex;align-items:center;gap:.3rem;margin-left:.5rem;margin-top:3px;"><span class="insight-btn">i</span><span style="font-size:10px;color:var(--text-dim);letter-spacing:.04em;cursor:pointer;">insights</span></span></div><div class="insight-card open" id="insight-eda_09b_ordem_heatmap">Dezenas baixas nao tem preferencia sistematica por posicoes iniciais no sorteio ao vivo. Distribuicao proxima do uniforme.</div><iframe src="/exports/eda_09b_ordem_heatmap.html" class="chart-frame" height="520" frameborder="0" scrolling="no" title="Ordem de Sorteio — Heatmap"></iframe></section>
+  <section id="eda_09c_ordem_spearman" class="section"><div class="section-header" onclick="toggleInsight('eda_09c_ordem_spearman')"><span class="section-num">13</span><div><h2 class="section-title">Ordem de Sorteio — Spearman</h2><p class="section-subtitle">Correlacao de Spearman entre posicao e valor da dezena por sorteio.</p></div><span style="display:inline-flex;align-items:center;gap:.3rem;margin-left:.5rem;margin-top:3px;"><span class="insight-btn">i</span><span style="font-size:10px;color:var(--text-dim);letter-spacing:.04em;cursor:pointer;">insights</span></span></div><div class="insight-card open" id="insight-eda_09c_ordem_spearman">Distribuicao da correlacao centrada em zero confirma ausencia de ordenacao sistematica entre valor e posicao de sorteio.</div><iframe src="/exports/eda_09c_ordem_spearman.html" class="chart-frame" height="460" frameborder="0" scrolling="no" title="Ordem de Sorteio — Spearman"></iframe></section>
+  <section id="eda_10a_correlacao_matrix" class="section"><div class="section-header" onclick="toggleInsight('eda_10a_correlacao_matrix')"><span class="section-num">14</span><div><h2 class="section-title">Correlacao entre Features</h2><p class="section-subtitle">Matriz de correlacao Pearson e Spearman entre features dos sorteios.</p></div><span style="display:inline-flex;align-items:center;gap:.3rem;margin-left:.5rem;margin-top:3px;"><span class="insight-btn">i</span><span style="font-size:10px;color:var(--text-dim);letter-spacing:.04em;cursor:pointer;">insights</span></span></div><div class="insight-card open" id="insight-eda_10a_correlacao_matrix">Correlacoes significativas entre soma e dezenas individuais sao matematicamente esperadas. Observe features ortogonais para insights independentes.</div><iframe src="/exports/eda_10a_correlacao_matrix.html" class="chart-frame" height="520" frameborder="0" scrolling="no" title="Correlacao entre Features"></iframe></section>
+  <section id="eda_10b_soma_acumulado_ks" class="section"><div class="section-header" onclick="toggleInsight('eda_10b_soma_acumulado_ks')"><span class="section-num">15</span><div><h2 class="section-title">Soma: Acumulado vs Nao-Acumulado</h2><p class="section-subtitle">Teste KS comparando distribuicao da soma em sorteios acumulados e nao-acumulados.</p></div><span style="display:inline-flex;align-items:center;gap:.3rem;margin-left:.5rem;margin-top:3px;"><span class="insight-btn">i</span><span style="font-size:10px;color:var(--text-dim);letter-spacing:.04em;cursor:pointer;">insights</span></span></div><div class="insight-card open" id="insight-eda_10b_soma_acumulado_ks">Teste Kolmogorov-Smirnov compara as distribuicoes. p > 0.05 indica que o status de acumulo nao altera a distribuicao da soma dos numeros sorteados.</div><iframe src="/exports/eda_10b_soma_acumulado_ks.html" class="chart-frame" height="460" frameborder="0" scrolling="no" title="Soma: Acumulado vs Nao-Acumulado"></iframe></section>
+  <section id="eda_10c_chi2_paridade" class="section"><div class="section-header" onclick="toggleInsight('eda_10c_chi2_paridade')"><span class="section-num">16</span><div><h2 class="section-title">Chi-square: Paridade x Acumulado</h2><p class="section-subtitle">Teste chi-quadrado verificando independencia entre paridade e status de acumulado.</p></div><span style="display:inline-flex;align-items:center;gap:.3rem;margin-left:.5rem;margin-top:3px;"><span class="insight-btn">i</span><span style="font-size:10px;color:var(--text-dim);letter-spacing:.04em;cursor:pointer;">insights</span></span></div><div class="insight-card open" id="insight-eda_10c_chi2_paridade">p > 0.05 confirma independencia entre paridade e status de acumulado. O tipo de sorteio nao influencia a distribuicao par/impar.</div><iframe src="/exports/eda_10c_chi2_paridade.html" class="chart-frame" height="460" frameborder="0" scrolling="no" title="Chi-square: Paridade x Acumulado"></iframe></section>
 </main>
 </div>
 <nav id="bottom-nav">
@@ -646,12 +667,18 @@ function clearBolao() {
 var _presSections = [
   'eda_01_frequencia_dezenas','eda_02_frequencia_faixa','eda_03_pares_impares',
   'eda_04_soma_dezenas','eda_05_gap_dezenas','eda_06_evolucao_temporal',
-  'eda_07_pares_coocorrencia'
+  'eda_07_pares_coocorrencia',
+  'eda_08a_local_frequencia','eda_08b_local_acumulo_premio','eda_08c_local_heatmap',
+  'eda_09a_ordem_boxplot','eda_09b_ordem_heatmap','eda_09c_ordem_spearman',
+  'eda_10a_correlacao_matrix','eda_10b_soma_acumulado_ks','eda_10c_chi2_paridade'
 ];
 var _presTitles = [
   'Frequencia Historica','Distribuicao por Faixa','Paridade',
   'Distribuicao da Soma','Gap entre Aparicoes','Evolucao Temporal',
-  'Co-ocorrencia de Pares'
+  'Co-ocorrencia de Pares',
+  'Local: Freq. de Sorteios','Local: Acumulo e Premio','Local: Heatmap de Dezenas',
+  'Ordem: Boxplot','Ordem: Heatmap','Ordem: Spearman',
+  'Correlacao entre Features','Soma: KS Acumulado','Chi-square: Paridade'
 ];
 var _presIdx = 0;
 
@@ -775,7 +802,10 @@ const navLinks = document.querySelectorAll('.nav-item');
 const _sectionOrder = [
   'eda_01_frequencia_dezenas','eda_02_frequencia_faixa','eda_03_pares_impares',
   'eda_04_soma_dezenas','eda_05_gap_dezenas','eda_06_evolucao_temporal',
-  'eda_07_pares_coocorrencia'
+  'eda_07_pares_coocorrencia',
+  'eda_08a_local_frequencia','eda_08b_local_acumulo_premio','eda_08c_local_heatmap',
+  'eda_09a_ordem_boxplot','eda_09b_ordem_heatmap','eda_09c_ordem_spearman',
+  'eda_10a_correlacao_matrix','eda_10b_soma_acumulado_ks','eda_10c_chi2_paridade'
 ];
 function updateNavProgress(activeId) {
   const idx = _sectionOrder.indexOf(activeId);
