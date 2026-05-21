@@ -208,9 +208,16 @@ nav { position: relative; }
 body.presentation #sidebar       { display: none; }
 body.presentation #content       { margin-left: 0; max-width: 100%; padding: 1.5rem 3rem; }
 body.presentation .page-header   { display: none; }
-body.presentation .section       { display: none; margin-bottom: 0; }
-body.presentation .section.pres-active { display: block; }
-body.presentation .chart-frame   { height: calc(100vh - 290px) !important; }
+body.presentation .section        { display: none; margin-bottom: 0; }
+body.presentation .section.pres-active {
+  display: flex; flex-direction: column;
+  min-height: calc(100vh - 122px);
+}
+body.presentation .section.pres-active .section-header { flex-shrink: 0; }
+body.presentation .section.pres-active .insight-card   { flex-shrink: 0; }
+body.presentation .chart-frame {
+  flex: 1; min-height: 200px; height: auto !important; width: 100%;
+}
 
 #pres-overlay {
   display: none; position: fixed; inset: 0; z-index: 500; pointer-events: none;
@@ -560,13 +567,16 @@ function _updatePresSlide() {
   });
   updateNavProgress(_presSections[_presIdx]);
   window.scrollTo(0, 0);
-  // Tell Plotly to resize after CSS transition settles
+  // Measure actual rendered iframe height and send to Plotly
   setTimeout(function() {
     var frame = document.querySelector('.section.pres-active .chart-frame');
     if (frame) {
-      try { frame.contentWindow.postMessage({type:'resize-chart'}, '*'); } catch(e) {}
+      var h = Math.round(frame.getBoundingClientRect().height);
+      if (h > 100) {
+        try { frame.contentWindow.postMessage({type:'resize-chart', height: h - 10}, '*'); } catch(e) {}
+      }
     }
-  }, 80);
+  }, 120);
 }
 
 document.addEventListener('keydown', function(e) {

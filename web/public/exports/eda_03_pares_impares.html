@@ -3949,7 +3949,12 @@ window.addEventListener('message', function(e) {
   if (e.data && e.data.type === 'update-chart') _updateChart(e.data);
   if (e.data && e.data.type === 'resize-chart') {
     var div = document.querySelector('.plotly-graph-div');
-    if (div && window.Plotly) Plotly.Plots.resize(div);
+    if (!div || !window.Plotly) return;
+    if (e.data.height) {
+      Plotly.relayout(div, {height: e.data.height, autosize: false});
+    } else {
+      Plotly.Plots.resize(div);
+    }
   }
 });
 </script>
