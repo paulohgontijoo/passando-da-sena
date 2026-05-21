@@ -210,7 +210,7 @@ body.presentation #content       { margin-left: 0; max-width: 100%; padding: 1.5
 body.presentation .page-header   { display: none; }
 body.presentation .section       { display: none; margin-bottom: 0; }
 body.presentation .section.pres-active { display: block; }
-body.presentation .chart-frame   { height: calc(100vh - 200px) !important; }
+body.presentation .chart-frame   { height: calc(100vh - 290px) !important; }
 
 #pres-overlay {
   display: none; position: fixed; inset: 0; z-index: 500; pointer-events: none;
@@ -560,6 +560,13 @@ function _updatePresSlide() {
   });
   updateNavProgress(_presSections[_presIdx]);
   window.scrollTo(0, 0);
+  // Tell Plotly to resize after CSS transition settles
+  setTimeout(function() {
+    var frame = document.querySelector('.section.pres-active .chart-frame');
+    if (frame) {
+      try { frame.contentWindow.postMessage({type:'resize-chart'}, '*'); } catch(e) {}
+    }
+  }, 80);
 }
 
 document.addEventListener('keydown', function(e) {

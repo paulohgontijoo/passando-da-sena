@@ -3947,6 +3947,10 @@ window.addEventListener('message', function(e) {
   if (e.data && e.data.type === 'set-theme') _applyTheme(e.data.theme);
   if (e.data && e.data.type === 'highlight-dezenas') _highlightDezenas(e.data.dezenas);
   if (e.data && e.data.type === 'update-chart') _updateChart(e.data);
+  if (e.data && e.data.type === 'resize-chart') {
+    var div = document.querySelector('.plotly-graph-div');
+    if (div && window.Plotly) Plotly.Plots.resize(div);
+  }
 });
 </script>
 </body>
