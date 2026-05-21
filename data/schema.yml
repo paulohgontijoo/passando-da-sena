@@ -1,0 +1,265 @@
+version: "1.0"
+project: passando-da-sena
+description: >
+  Contrato de dados do Passando da Sena Analytics.
+  Fonte de verdade para setup do banco Supabase (Postgres).
+  O script python/db/bootstrap.py le este arquivo e aplica o schema de forma idempotente.
+
+enums:
+  user_role:
+    schema: public
+    values: [admin, moderador, apostador]
+
+tables:
+
+  sorteios:
+    schema: public
+    description: Historico oficial de sorteios da Mega Sena (fonte Caixa).
+    columns:
+      id:
+        type: serial
+        primary_key: true
+      concurso:
+        type: integer
+        not_null: true
+        unique: true
+      data_sorteio:
+        type: date
+        not_null: true
+      numeros:
+        type: "integer[]"
+        not_null: true
+        check: "array_length(numeros, 1) = 6"
+      acumulou:
+        type: boolean
+        not_null: true
+        default: "false"
+      premio_sena:
+        type: "numeric(15,2)"
+      premio_quina:
+        type: "numeric(15,2)"
+      premio_quadra:
+        type: "numeric(15,2)"
+      arrecadacao:
+        type: "numeric(15,2)"
+      created_at:
+        type: timestamptz
+        default: "now()"
+    indexes:
+      - name: idx_sorteios_concurso
+        columns: [concurso]
+      - name: idx_sorteios_data
+        columns: [data_sorteio]
+    rls:
+      enabled: true
+      policies:
+        - name: sorteios_select_public
+          operation: SELECT
+          role: public
+          using: "true"
+
+  profiles:
+    schema: public
+    description: Perfis de usuarios espelhados do Supabase Auth. Criados via trigger.
+    columns:
+      id:
+        type: uuid
+        primary_key: true
+        references: "auth.users(id)"
+        on_delete: CASCADE
+      nome:
+        type: text
+        not_null: true
+      email:
+        type: text
+        not_null: true
+      role:
+        type: user_role
+        not_null: true
+        default: "'apostador'"
+      created_at:
+        type: timestamptz
+        default: "now()"
+    rls:
+      enabled: true
+      policies:
+        - name: profiles_select_own
+          operation: SELECT
+          role: authenticated
+          using: "auth.uid() = id"
+        - name: profiles_select_admin
+          operation: SELECT
+          role: authenticated
+          using: "EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')"
+        - name: profiles_update_own
+          operation: UPDATE
+          role: authenticated
+          using: "auth.uid() = id"
+          check: "role = (SELECT role FROM profiles WHERE id = auth.uid())"
+
+  boloes:
+    schema: public
+    description: Cada rodada de apostas coletiva do grupo.
+    columns:
+      id:
+        type: serial
+        primary_key: true
+      concurso:
+        type: integer
+        not_null: true
+        references: "sorteios(concurso)"
+        on_delete: RESTRICT
+      descricao:
+        type: text
+      valor_cota:
+        type: "numeric(10,2)"
+        not_null: true
+      criado_por:
+        type: uuid
+        not_null: true
+        references: "profiles(id)"
+        on_delete: RESTRICT
+      created_at:
+        type: timestamptz
+        default: "now()"
+    indexes:
+      - name: idx_boloes_concurso
+        columns: [concurso]
+    rls:
+      enabled: true
+      policies:
+        - name: boloes_select_authenticated
+          operation: SELECT
+          role: authenticated
+          using: "true"
+        - name: boloes_insert_admin_mod
+          operation: INSERT
+          role: authenticated
+          check: "EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'moderador'))"
+        - name: boloes_update_admin_mod
+          operation: UPDATE
+          role: authenticated
+          using: "EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'moderador'))"
+
+  participacoes:
+    schema: public
+    description: Relacao entre apostadores e boloes - cotas e pagamentos.
+    columns:
+      id:
+        type: serial
+        primary_key: true
+      bolao_id:
+        type: integer
+        not_null: true
+        references: "boloes(id)"
+        on_delete: CASCADE
+      usuario_id:
+        type: uuid
+        not_null: true
+        references: "profiles(id)"
+        on_delete: RESTRICT
+      num_cotas:
+        type: integer
+        not_null: true
+        default: "1"
+        check: "num_cotas > 0"
+      valor_pago:
+        type: "numeric(10,2)"
+        not_null: true
+        default: "0.00"
+      pago:
+        type: boolean
+        not_null: true
+        default: "false"
+      updated_at:
+        type: timestamptz
+        default: "now()"
+    constraints:
+      - name: uq_participacao_bolao_usuario
+        type: UNIQUE
+        columns: [bolao_id, usuario_id]
+    indexes:
+      - name: idx_participacoes_bolao
+        columns: [bolao_id]
+      - name: idx_participacoes_usuario
+        columns: [usuario_id]
+    rls:
+      enabled: true
+      policies:
+        - name: participacoes_select_own
+          operation: SELECT
+          role: authenticated
+          using: "usuario_id = auth.uid()"
+        - name: participacoes_select_admin_mod
+          operation: SELECT
+          role: authenticated
+          using: "EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'moderador'))"
+        - name: participacoes_insert_admin_mod
+          operation: INSERT
+          role: authenticated
+          check: "EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'moderador'))"
+        - name: participacoes_update_admin_mod
+          operation: UPDATE
+          role: authenticated
+          using: "EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'moderador'))"
+
+  apostas:
+    schema: public
+    description: Jogos registrados pelo grupo em cada bolao (numeros escolhidos).
+    columns:
+      id:
+        type: serial
+        primary_key: true
+      bolao_id:
+        type: integer
+        not_null: true
+        references: "boloes(id)"
+        on_delete: CASCADE
+      numeros:
+        type: "integer[]"
+        not_null: true
+        check: "array_length(numeros, 1) BETWEEN 6 AND 15"
+      registrado_por:
+        type: uuid
+        not_null: true
+        references: "profiles(id)"
+        on_delete: RESTRICT
+      created_at:
+        type: timestamptz
+        default: "now()"
+    indexes:
+      - name: idx_apostas_bolao
+        columns: [bolao_id]
+    rls:
+      enabled: true
+      policies:
+        - name: apostas_select_authenticated
+          operation: SELECT
+          role: authenticated
+          using: "true"
+        - name: apostas_insert_admin_mod
+          operation: INSERT
+          role: authenticated
+          check: "EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'moderador'))"
+
+triggers:
+  - name: on_auth_user_created
+    table: "auth.users"
+    event: AFTER INSERT
+    function: handle_new_user
+    description: Cria public.profiles automaticamente quando usuario e criado no Auth.
+    function_body: |
+      BEGIN
+        INSERT INTO public.profiles (id, nome, email, role)
+        VALUES (
+          NEW.id,
+          COALESCE(NEW.raw_user_meta_data->>'nome', split_part(NEW.email, '@', 1)),
+          NEW.email,
+          COALESCE(
+            (NEW.raw_user_meta_data->>'role')::public.user_role,
+            'apostador'::public.user_role
+          )
+        )
+        ON CONFLICT (id) DO NOTHING;
+        RETURN NEW;
+      END;

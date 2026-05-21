@@ -3958,6 +3958,16 @@ window.addEventListener('message', function(e) {
   }
 });
 </script>
+<!-- mobile-fix -->
+<script>
+if (window.innerWidth < 768) {
+  window.addEventListener('load', function() {
+    var gd = document.querySelector('.plotly-graph-div');
+    if (!gd) return;
+    Plotly.relayout(gd, {'margin.r': 90});
+  });
+}
+</script>
 </body>
 
 </html>

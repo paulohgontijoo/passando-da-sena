@@ -3958,6 +3958,20 @@ window.addEventListener('message', function(e) {
   }
 });
 </script>
+<!-- mobile-fix -->
+<script>
+if (window.innerWidth < 768) {
+  window.addEventListener('load', function() {
+    var gd = document.querySelector('.plotly-graph-div');
+    if (!gd) return;
+    Plotly.relayout(gd, {
+      'annotations[0].font.size': 9,
+      'annotations[1].font.size': 9,
+      'margin.t': 70
+    });
+  });
+}
+</script>
 </body>
 
 </html>
