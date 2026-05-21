@@ -177,21 +177,25 @@ nav { padding: .75rem 0; flex: 1; }
 .range-meta .range-count { color: var(--accent); font-size: 10px; }
 
 nav { position: relative; }
-#nav-track { position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+#nav-track { position: absolute; right: 0; top: 0; bottom: 0; width: 3px;
   background: var(--border); pointer-events: none; }
-#nav-bar   { position: absolute; left: 0; top: 0; width: 2px;
+#nav-bar   { position: absolute; right: 0; top: 0; width: 3px;
   background: linear-gradient(to bottom, var(--accent), var(--highlight));
   transition: height .45s cubic-bezier(.4,0,.2,1); height: 0%;
-  pointer-events: none; border-radius: 0 0 2px 2px; }
+  pointer-events: none; border-radius: 0 0 2px 2px;
+  box-shadow: -2px 0 8px rgba(233,69,96,.35); }
 @keyframes navGlow {
-  0%,100% { background: var(--surface2); box-shadow: none; }
-  50%      { background: rgba(233,69,96,.08);
-             box-shadow: inset 2px 0 8px rgba(233,69,96,.15); }
+  0%,100% { background: var(--surface2); }
+  50%      { background: rgba(233,69,96,.14); }
 }
 .nav-item.active {
   color: var(--text); background: var(--surface2);
   border-left-color: var(--accent);
   animation: navGlow 2.8s ease-in-out infinite;
+}
+.nav-item.active .nav-icon-num {
+  color: var(--highlight);
+  opacity: 1;
 }
 .nav-icon-num {
   font-size: 9px; font-weight: 700; color: var(--accent);
@@ -455,6 +459,8 @@ const observer = new IntersectionObserver(entries => {
   });
 }, { threshold: 0.2, rootMargin: '-5% 0px -60% 0px' });
 sections.forEach(s => observer.observe(s));
+// Set initial progress to first section on load
+updateNavProgress(_sectionOrder[0]);
 navLinks.forEach(a => a.addEventListener('click', () => {
   document.getElementById('sidebar').classList.remove('open');
 }));
