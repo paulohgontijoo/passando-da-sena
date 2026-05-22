@@ -33,15 +33,28 @@ export function AnalyticsClient() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase
-      .from('sorteios')
-      .select('concurso,data_sorteio,numeros,acumulou,premio_sena,municipio,uf,local_sorteio,valor_acumulado,ganhadores_sena')
-      .order('concurso', { ascending: true })
-      .limit(10000)
-      .then(({ data, error }) => {
-        if (!error && data) setSorteios(data as Sorteio[])
-        setLoading(false)
-      })
+    const fields = 'concurso,data_sorteio,numeros,acumulou,premio_sena,municipio,uf,local_sorteio,valor_acumulado,ganhadores_sena'
+    const BATCH = 1000
+
+    async function fetchAll() {
+      const all: Sorteio[] = []
+      let from = 0
+      while (true) {
+        const { data, error } = await supabase
+          .from('sorteios')
+          .select(fields)
+          .order('concurso', { ascending: true })
+          .range(from, from + BATCH - 1)
+        if (error || !data || data.length === 0) break
+        all.push(...(data as Sorteio[]))
+        if (data.length < BATCH) break
+        from += BATCH
+      }
+      setSorteios(all)
+      setLoading(false)
+    }
+
+    fetchAll()
   }, [])
 
   const filtered = useMemo(() => {

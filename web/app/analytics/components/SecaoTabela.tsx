@@ -14,13 +14,15 @@ export function SecaoTabela({ data }: Props) {
     const q = query.trim()
     if (!q) return [...data].sort((a, b) => b.concurso - a.concurso)
 
+    // 4-digit number starting with 19/20 = year → search in data_sorteio
+    const isYear = /^\d{4}$/.test(q) && (q.startsWith('19') || q.startsWith('20'))
     const num = parseInt(q, 10)
-    const isNum = !isNaN(num)
 
     return [...data]
       .filter(s => {
-        if (isNum) return s.concurso === num || s.numeros.includes(num)
-        // search by date fragment e.g. "2024"
+        if (isYear)              return s.data_sorteio.includes(q)
+        if (!isNaN(num) && num >= 1 && num <= 60) return s.numeros.includes(num)
+        if (!isNaN(num))         return s.concurso === num
         return s.data_sorteio.includes(q)
       })
       .sort((a, b) => b.concurso - a.concurso)
