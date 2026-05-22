@@ -26,7 +26,7 @@ export function SecaoTemporalAcumulo({ data }: Props) {
   return (
     <section id="acumulo-temporal" className="space-y-4">
       <div className="flex items-start gap-3">
-        <span className="bg-accent text-white text-xs font-bold px-2 py-1 rounded shrink-0">03</span>
+        <span className="bg-accent text-white text-xs font-bold px-2 py-1 rounded shrink-0">04</span>
         <div>
           <h2 className="text-brand font-bold text-xl">Histórico de Acúmulos</h2>
           <p className="text-muted text-sm mt-1">

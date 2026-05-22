@@ -36,7 +36,7 @@ export function SecaoTabela({ data }: Props) {
   return (
     <section id="tabela" className="space-y-4">
       <div className="flex items-start gap-3">
-        <span className="bg-accent text-white text-xs font-bold px-2 py-1 rounded shrink-0">06</span>
+        <span className="bg-accent text-white text-xs font-bold px-2 py-1 rounded shrink-0">01</span>
         <div>
           <h2 className="text-brand font-bold text-xl">Consultar Concursos</h2>
           <p className="text-muted text-sm mt-1">
