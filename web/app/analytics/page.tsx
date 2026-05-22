@@ -1,14 +1,19 @@
-import { Nav } from '@/components/Nav'
+import { redirect } from "next/navigation"
+import { Nav } from "@/components/Nav"
+import { createClient } from "@/utils/supabase/server"
+import { AnalyticsClient } from "./AnalyticsClient"
 
-export default function AnalyticsPage() {
+export default async function AnalyticsPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect("/login")
+
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen overflow-hidden bg-primary">
       <Nav />
-      <iframe
-        src="/reports/eda.html"
-        title="Análise Exploratória — Mega Sena"
-        className="flex-1 w-full border-0"
-      />
+      <div className="flex-1 overflow-hidden">
+        <AnalyticsClient />
+      </div>
     </div>
   )
 }
