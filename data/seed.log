@@ -1,0 +1,20 @@
+2026-05-21 17:44:45 [INFO] Lendo /home/prime/projects/passando-da-sena/data/sorteios.json
+2026-05-21 17:44:45 [INFO] Total de registros no JSON: 3002
+2026-05-21 17:44:45 [INFO] Parsing concluido. Conectando ao Supabase...
+2026-05-21 17:44:47 [INFO]   upsert 200/3002
+2026-05-21 17:44:48 [INFO]   upsert 400/3002
+2026-05-21 17:44:48 [INFO]   upsert 600/3002
+2026-05-21 17:44:48 [INFO]   upsert 800/3002
+2026-05-21 17:44:48 [INFO]   upsert 1000/3002
+2026-05-21 17:44:48 [INFO]   upsert 1200/3002
+2026-05-21 17:44:49 [INFO]   upsert 1400/3002
+2026-05-21 17:44:49 [INFO]   upsert 1600/3002
+2026-05-21 17:44:49 [INFO]   upsert 1800/3002
+2026-05-21 17:44:49 [INFO]   upsert 2000/3002
+2026-05-21 17:44:49 [INFO]   upsert 2200/3002
+2026-05-21 17:44:50 [INFO]   upsert 2400/3002
+2026-05-21 17:44:50 [INFO]   upsert 2600/3002
+2026-05-21 17:44:50 [INFO]   upsert 2800/3002
+2026-05-21 17:44:50 [INFO]   upsert 3000/3002
+2026-05-21 17:44:50 [INFO]   upsert 3002/3002
+2026-05-21 17:44:50 [INFO] Seed concluido — 3002 registros upsertados.
