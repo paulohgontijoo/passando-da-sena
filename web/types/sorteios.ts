@@ -15,8 +15,8 @@ export interface Sorteio {
 export const C = {
   accent:  '#e94560',
   hi:      '#f5a623',
-  muted:   '#4a5568',
-  midMuted:'#6b7280',
+  muted:   '#8892b0',
+  midMuted:'#a0aec0',
   surface: '#161b22',
   bg:      '#1a1a2e',
   text:    '#e2e8f0',
@@ -28,8 +28,8 @@ export const baseLayout = (extra: Record<string, unknown> = {}) => ({
   plot_bgcolor:  C.surface,
   font: { color: C.text, family: 'Inter, sans-serif', size: 12 },
   margin: { t: 40, r: 20, b: 50, l: 70 },
-  xaxis: { gridcolor: C.grid, zerolinecolor: C.grid, tickfont: { color: C.text } },
-  yaxis: { gridcolor: C.grid, zerolinecolor: C.grid, tickfont: { color: C.text } },
+  xaxis: { gridcolor: C.grid, zerolinecolor: C.grid, tickfont: { color: C.text }, title: { font: { color: C.text } } },
+  yaxis: { gridcolor: C.grid, zerolinecolor: C.grid, tickfont: { color: C.text }, title: { font: { color: C.text } } },
   showlegend: false,
   ...extra,
 })
