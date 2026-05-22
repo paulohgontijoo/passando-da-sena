@@ -38,7 +38,7 @@ export function SecaoParidadeSoma({ data }: Props) {
         </div>
       </div>
 
-      <div className="border border-accent/30 rounded-lg bg-surface p-4 flex gap-8">
+      <div className="border border-accent/30 rounded-lg bg-surface p-4 flex gap-8 text-brand">
         <div>
           <div className="text-hi text-2xl font-bold">{modoPares}p / {6 - modoPares}í</div>
           <div className="text-muted text-xs uppercase tracking-wide">Combinação mais comum</div>

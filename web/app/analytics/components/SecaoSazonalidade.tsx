@@ -44,7 +44,7 @@ export function SecaoSazonalidade({ data }: Props) {
         </div>
       </div>
 
-      <div className="border border-accent/30 rounded-lg bg-surface p-4 flex gap-8">
+      <div className="border border-accent/30 rounded-lg bg-surface p-4 flex gap-8 text-brand">
         <div>
           <div className="text-accent text-2xl font-bold">{MESES[picoMes]}</div>
           <div className="text-muted text-xs uppercase tracking-wide">Mês com mais acúmulos</div>

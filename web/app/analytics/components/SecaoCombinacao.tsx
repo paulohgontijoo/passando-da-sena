@@ -70,7 +70,7 @@ export function SecaoCombinacao({ dezenas, allSorteios }: Props) {
   const barColors = freqData.map(d => d.pct >= 0 ? C.accent : C.hi)
 
   return (
-    <section id="combinacao" className="space-y-4 border-l-2 pl-4" style={{ borderColor: C.accent }}>
+    <section id="combinacao" className="space-y-4 border-l-2 pl-4 text-brand" style={{ borderColor: C.accent }}>
       <div className="flex items-start gap-3">
         <span className="bg-accent text-white text-xs font-bold px-2 py-1 rounded shrink-0">★</span>
         <div>

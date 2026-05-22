@@ -42,8 +42,8 @@ export function SecaoFrequencia({ data }: Props) {
       </div>
 
       {/* Insight box */}
-      <div className="border border-accent/30 rounded-lg bg-surface p-4 space-y-3">
-        <p className="text-sm">
+      <div className="border border-accent/30 rounded-lg bg-surface p-4 space-y-3 text-brand">
+        <p className="text-brand text-sm">
           <span className="text-accent font-bold">Dezena {top.d}</span> lidera com{' '}
           <span className="text-accent font-bold">{top.v} aparições.</span>{' '}
           <span className="text-brand font-bold">Dezena {bottom.d}</span> é a menos frequente:{' '}

@@ -36,7 +36,7 @@ export function SecaoTemporalAcumulo({ data }: Props) {
       </div>
 
       {pico && (
-        <div className="border border-accent/30 rounded-lg bg-surface p-4 flex gap-8">
+        <div className="border border-accent/30 rounded-lg bg-surface p-4 flex gap-8 text-brand">
           <div>
             <div className="text-accent text-2xl font-bold">{formatMoeda(pico.valor_acumulado)}</div>
             <div className="text-muted text-xs uppercase tracking-wide">Maior pote registrado</div>
