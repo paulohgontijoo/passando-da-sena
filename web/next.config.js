@@ -1,7 +1,11 @@
+const path = require('path')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Dados estáticos resolvidos em build time — sem chamadas externas em runtime
-  // O JSON em /data é importado diretamente via path relativo nos server components
+  experimental: {
+    // Necessario para output file tracing em setup com rootDirectory no Vercel
+    outputFileTracingRoot: path.join(__dirname, '../'),
+  },
 };
 
 module.exports = nextConfig;
